@@ -1,0 +1,411 @@
+// GANNDAL — Schéma de base de données
+// Prisma + PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Supabase: URL via le pooler (port 6543, ?pgbouncer=true) pour le runtime
+  url      = env("DATABASE_URL")
+  // Connexion directe (port 5432) requise par prisma migrate
+  directUrl = env("DIRECT_URL")
+}
+
+// =====================================================================
+// AUTHENTIFICATION & UTILISATEURS
+// =====================================================================
+
+enum Role {
+  ADMIN
+  REDACTEUR // Rédacteur en chef
+  JRI // JRI / Pigiste
+  COMPTABLE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  nom          String
+  prenom       String
+  telephone    String?
+  role         Role
+  actif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  jriProfile          JriProfile?
+  sujetsCrees         Sujet[]            @relation("SujetCreateur")
+  sujetsAssignes      Sujet[]            @relation("SujetJri")
+  elementsUploades    SujetElement[]
+  validations         Validation[]
+  fichesPaiement      FichePaiement[]    @relation("FicheJri")
+  dotationsBenef      Dotation[]         @relation("DotationJri")
+  dotationsRemises    Dotation[]         @relation("DotationResponsable")
+  dotationsValidees   Dotation[]         @relation("DotationValidateur")
+  incidents           IncidentMateriel[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  refreshTokens       RefreshToken[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Profil étendu propre aux JRI / pigistes
+model JriProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tarifParSujet      Decimal  @default(0) @db.Decimal(12, 2)
+  tarifParMinute     Decimal  @default(0) @db.Decimal(12, 2)
+  // Règles de tarif personnalisé (ex: par catégorie de sujet, par client)
+  tarifPersonnalise  Json?
+  iban               String?
+  specialite         String?
+  bio                String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// =====================================================================
+// GESTION DES SUJETS
+// =====================================================================
+
+enum Priorite {
+  BASSE
+  NORMALE
+  HAUTE
+  URGENTE
+}
+
+enum StatutSujet {
+  ASSIGNE
+  EN_COURS
+  LIVRE
+  VALIDE
+  REJETE
+}
+
+model Sujet {
+  id           String      @id @default(cuid())
+  reference    String      @unique // ex: SUJ-2026-0001
+  titre        String
+  description  String?
+  jriId        String?
+  jri          User?       @relation("SujetJri", fields: [jriId], references: [id])
+  createdById  String
+  createur     User        @relation("SujetCreateur", fields: [createdById], references: [id])
+  dateLimite   DateTime?
+  priorite     Priorite    @default(NORMALE)
+  statut       StatutSujet @default(ASSIGNE)
+  // Durée produite (minutes) — base du calcul tarif/minute
+  dureeMinutes Int         @default(0)
+  livreLe      DateTime?
+  valideLe     DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  elements    SujetElement[]
+  validations Validation[]
+  lignesPige  PaiementLigne[]
+
+  @@index([jriId])
+  @@index([statut])
+  @@index([dateLimite])
+}
+
+enum TypeElement {
+  VIDEO
+  AUDIO
+  PHOTO
+  DOCUMENT
+}
+
+// Dépôt des éléments — historique de versions par incrément
+model SujetElement {
+  id           String      @id @default(cuid())
+  sujetId      String
+  sujet        Sujet       @relation(fields: [sujetId], references: [id], onDelete: Cascade)
+  type         TypeElement
+  nomFichier   String
+  storageKey   String // clé S3
+  url          String?
+  mime         String?
+  tailleOctets BigInt      @default(0)
+  version      Int         @default(1)
+  uploadedById String
+  uploadedBy   User        @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime    @default(now())
+
+  @@index([sujetId, type])
+}
+
+enum ActionValidation {
+  VALIDE
+  REJETE
+  CORRECTION_DEMANDEE
+}
+
+model Validation {
+  id           String           @id @default(cuid())
+  sujetId      String
+  sujet        Sujet            @relation(fields: [sujetId], references: [id], onDelete: Cascade)
+  validateurId String
+  validateur   User             @relation(fields: [validateurId], references: [id])
+  action       ActionValidation
+  commentaire  String?
+  createdAt    DateTime         @default(now())
+
+  @@index([sujetId])
+}
+
+// =====================================================================
+// DEVISES (multi-currency)
+// Devise de base = GNF (tauxGnf = 1). Tous les montants métier sont
+// stockés en GNF ; la conversion se fait à l'affichage / export.
+// =====================================================================
+
+model Currency {
+  code      String   @id // ISO 4217: GNF, USD, EUR, XOF, NGN...
+  nom       String
+  symbole   String
+  // 1 unité de cette devise = tauxGnf GNF
+  tauxGnf   Decimal  @db.Decimal(18, 6)
+  actif     Boolean  @default(true)
+  parDefaut Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+}
+
+// =====================================================================
+// COMPTABILISATION & PAIEMENTS
+// =====================================================================
+
+enum StatutFiche {
+  BROUILLON
+  GENEREE
+  PAYEE
+}
+
+// Fiche de pige mensuelle par JRI
+model FichePaiement {
+  id            String      @id @default(cuid())
+  reference     String      @unique // ex: PIGE-2026-06-0001
+  jriId         String
+  jri           User        @relation("FicheJri", fields: [jriId], references: [id])
+  annee         Int
+  mois          Int // 1-12
+  nbSujets      Int         @default(0)
+  totalMinutes  Int         @default(0)
+  montantBase   Decimal     @default(0) @db.Decimal(12, 2)
+  bonus         Decimal     @default(0) @db.Decimal(12, 2)
+  penalites     Decimal     @default(0) @db.Decimal(12, 2)
+  montantTotal  Decimal     @default(0) @db.Decimal(12, 2)
+  statut        StatutFiche @default(BROUILLON)
+  pdfUrl        String?
+  payeeLe       DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  lignes PaiementLigne[]
+
+  @@unique([jriId, annee, mois])
+  @@index([statut])
+}
+
+model PaiementLigne {
+  id        String        @id @default(cuid())
+  ficheId   String
+  fiche     FichePaiement @relation(fields: [ficheId], references: [id], onDelete: Cascade)
+  sujetId   String?
+  sujet     Sujet?        @relation(fields: [sujetId], references: [id])
+  libelle   String
+  quantite  Decimal       @default(0) @db.Decimal(12, 2)
+  tarif     Decimal       @default(0) @db.Decimal(12, 2)
+  montant   Decimal       @default(0) @db.Decimal(12, 2)
+
+  @@index([ficheId])
+}
+
+// =====================================================================
+// MODULE ÉQUIPEMENTS & DOTATIONS
+// =====================================================================
+
+model CategorieMateriel {
+  id        String     @id @default(cuid())
+  nom       String     @unique
+  materiels Materiel[]
+  createdAt DateTime   @default(now())
+}
+
+enum EtatMateriel {
+  NEUF
+  BON_ETAT
+  A_REPARER
+  HORS_SERVICE
+  PERDU
+  VOLE
+}
+
+enum StatutMateriel {
+  DISPONIBLE
+  AFFECTE
+  MAINTENANCE
+  PERDU
+  VOLE
+}
+
+model Materiel {
+  id              String            @id @default(cuid())
+  reference       String            @unique // référence interne
+  numInventaire   String            @unique
+  categorieId     String
+  categorie       CategorieMateriel @relation(fields: [categorieId], references: [id])
+  marque          String?
+  modele          String?
+  numSerie        String?
+  dateAchat       DateTime?
+  fournisseur     String?
+  coutAcquisition Decimal           @default(0) @db.Decimal(12, 2)
+  garantieFin     DateTime?
+  etat            EtatMateriel      @default(NEUF)
+  statut          StatutMateriel    @default(DISPONIBLE)
+  qrCodeData      String? // payload encodé dans le QR (URL fiche)
+  qrCodeUrl       String? // image QR stockée S3
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  dotations    Dotation[]
+  maintenances Maintenance[]
+  incidents    IncidentMateriel[]
+
+  @@index([categorieId])
+  @@index([statut])
+}
+
+enum StatutDotation {
+  EN_COURS // matériel détenu par le JRI
+  RESTITUE
+}
+
+model Dotation {
+  id              String         @id @default(cuid())
+  materielId      String
+  materiel        Materiel       @relation(fields: [materielId], references: [id])
+  jriId           String
+  jri             User           @relation("DotationJri", fields: [jriId], references: [id])
+  responsableId   String
+  responsable     User           @relation("DotationResponsable", fields: [responsableId], references: [id])
+  dateRemise      DateTime       @default(now())
+  etatRemise      EtatMateriel
+  photosRemise    String[] // clés/URLs S3
+  signatureUrl    String? // signature électronique du JRI
+  observations    String?
+  statut          StatutDotation @default(EN_COURS)
+  // Restitution
+  dateRetour          DateTime?
+  etatRetour          EtatMateriel?
+  photosRetour        String[]
+  validateurId        String?
+  validateur          User?     @relation("DotationValidateur", fields: [validateurId], references: [id])
+  montantDegradation  Decimal   @default(0) @db.Decimal(12, 2)
+  observationsRetour  String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([materielId])
+  @@index([jriId])
+  @@index([statut])
+}
+
+model Maintenance {
+  id                 String    @id @default(cuid())
+  materielId         String
+  materiel           Materiel  @relation(fields: [materielId], references: [id])
+  datePanne          DateTime
+  description        String
+  prestataire        String?
+  cout               Decimal   @default(0) @db.Decimal(12, 2)
+  dateRemiseEnService DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([materielId])
+}
+
+enum TypeIncident {
+  PANNE
+  PERTE
+  VOL
+  DEGRADATION
+}
+
+model IncidentMateriel {
+  id         String       @id @default(cuid())
+  materielId String
+  materiel   Materiel     @relation(fields: [materielId], references: [id])
+  declareById String
+  declarePar User         @relation(fields: [declareById], references: [id])
+  type       TypeIncident
+  description String
+  createdAt  DateTime     @default(now())
+
+  @@index([materielId])
+}
+
+// =====================================================================
+// NOTIFICATIONS
+// =====================================================================
+
+enum CanalNotif {
+  INTERNE
+  EMAIL
+  WHATSAPP
+}
+
+model Notification {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  canal     CanalNotif @default(INTERNE)
+  titre     String
+  message   String
+  lien      String?
+  lu        Boolean    @default(false)
+  createdAt DateTime   @default(now())
+
+  @@index([userId, lu])
+}
+
+// =====================================================================
+// JOURNALISATION (AUDIT)
+// =====================================================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String // CREATE, UPDATE, DELETE, ASSIGN, VALIDATE, RESTITUTION...
+  entite    String // ex: Sujet, Materiel, Dotation
+  entiteId  String?
+  details   Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([entite, entiteId])
+  @@index([userId])
+  @@index([createdAt])
+}

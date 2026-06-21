@@ -1,0 +1,137 @@
+import { Router } from 'express';
+import { z } from 'zod';
+import { prisma } from '../../lib/prisma.js';
+import { asyncHandler, notFound, badRequest } from '../../lib/http.js';
+import { authenticate, requireRole } from '../../middleware/auth.js';
+import { upload } from '../../middleware/upload.js';
+import { uploadObject } from '../../lib/s3.js';
+import { audit } from '../../lib/audit.js';
+import { notify } from '../../lib/notify.js';
+import { Prisma, type EtatMateriel } from '@prisma/client';
+
+export const dotationsRouter = Router();
+dotationsRouter.use(authenticate);
+
+const ETAT = ['NEUF', 'BON_ETAT', 'A_REPARER', 'HORS_SERVICE', 'PERDU', 'VOLE'] as const;
+
+// Liste — JRI ne voit que ses dotations
+dotationsRouter.get(
+  '/',
+  asyncHandler(async (req, res) => {
+    const where: Prisma.DotationWhereInput = {};
+    if (req.user!.role === 'JRI') where.jriId = req.user!.sub;
+    else if (req.query.jriId) where.jriId = req.query.jriId as string;
+    if (req.query.statut) where.statut = req.query.statut as Prisma.DotationWhereInput['statut'];
+    const dotations = await prisma.dotation.findMany({
+      where,
+      include: { materiel: { include: { categorie: true } }, jri: { select: { nom: true, prenom: true } } },
+      orderBy: { dateRemise: 'desc' },
+    });
+    res.json(dotations);
+  }),
+);
+
+// Remise: attribuer un matériel à un JRI
+const remiseSchema = z.object({
+  materielId: z.string(),
+  jriId: z.string(),
+  etatRemise: z.enum(ETAT),
+  observations: z.string().optional(),
+  photosRemise: z.array(z.string()).optional(),
+  signatureUrl: z.string().optional(),
+});
+
+dotationsRouter.post(
+  '/',
+  requireRole('ADMIN', 'REDACTEUR'),
+  asyncHandler(async (req, res) => {
+    const data = remiseSchema.parse(req.body);
+    const materiel = await prisma.materiel.findUnique({ where: { id: data.materielId } });
+    if (!materiel) throw notFound('Matériel introuvable');
+    if (materiel.statut !== 'DISPONIBLE') throw badRequest('Matériel non disponible');
+
+    const [dotation] = await prisma.$transaction([
+      prisma.dotation.create({
+        data: {
+          materielId: data.materielId,
+          jriId: data.jriId,
+          responsableId: req.user!.sub,
+          etatRemise: data.etatRemise,
+          observations: data.observations,
+          photosRemise: data.photosRemise ?? [],
+          signatureUrl: data.signatureUrl,
+          statut: 'EN_COURS',
+        },
+      }),
+      prisma.materiel.update({ where: { id: data.materielId }, data: { statut: 'AFFECTE' } }),
+    ]);
+    await audit({ userId: req.user!.sub, action: 'ASSIGN', entite: 'Dotation', entiteId: dotation.id, ip: req.ip });
+    await notify({ userId: data.jriId, titre: 'Matériel attribué', message: `${materiel.reference} vous a été remis.`, canaux: ['INTERNE', 'EMAIL'] });
+    res.status(201).json(dotation);
+  }),
+);
+
+// Upload photo / signature liée à une dotation
+dotationsRouter.post(
+  '/:id/fichier',
+  upload.single('fichier'),
+  asyncHandler(async (req, res) => {
+    if (!req.file) throw badRequest('Aucun fichier');
+    const kind = (req.body.kind as string) ?? 'photo'; // photo | signature | photoRetour
+    const key = `dotations/${req.params.id}/${kind}-${Date.now()}-${req.file.originalname}`;
+    const url = await uploadObject(key, req.file.buffer, req.file.mimetype);
+    res.status(201).json({ url });
+  }),
+);
+
+// Restitution: contrôle d'état + calcul dégradation
+const restitutionSchema = z.object({
+  etatRetour: z.enum(ETAT),
+  photosRetour: z.array(z.string()).optional(),
+  observationsRetour: z.string().optional(),
+  montantDegradation: z.number().nonnegative().optional(),
+});
+
+// Barème automatique de dégradation (% du coût d'acquisition)
+const BAREME: Record<EtatMateriel, number> = {
+  NEUF: 0, BON_ETAT: 0, A_REPARER: 0.25, HORS_SERVICE: 0.6, PERDU: 1, VOLE: 1,
+};
+
+dotationsRouter.post(
+  '/:id/restitution',
+  requireRole('ADMIN', 'REDACTEUR'),
+  asyncHandler(async (req, res) => {
+    const data = restitutionSchema.parse(req.body);
+    const dotation = await prisma.dotation.findUnique({ where: { id: req.params.id }, include: { materiel: true } });
+    if (!dotation) throw notFound();
+    if (dotation.statut === 'RESTITUE') throw badRequest('Déjà restitué');
+
+    // Dégradation auto si non fournie: dégradation = max(0, baremeRetour - baremeRemise) × coût
+    const cout = Number(dotation.materiel.coutAcquisition);
+    const delta = Math.max(0, BAREME[data.etatRetour] - BAREME[dotation.etatRemise]);
+    const montantDegradation = data.montantDegradation ?? Math.round(delta * cout);
+
+    const nouveauStatutMateriel =
+      data.etatRetour === 'PERDU' ? 'PERDU' : data.etatRetour === 'VOLE' ? 'VOLE'
+      : data.etatRetour === 'A_REPARER' || data.etatRetour === 'HORS_SERVICE' ? 'MAINTENANCE'
+      : 'DISPONIBLE';
+
+    const [updated] = await prisma.$transaction([
+      prisma.dotation.update({
+        where: { id: dotation.id },
+        data: {
+          statut: 'RESTITUE',
+          dateRetour: new Date(),
+          etatRetour: data.etatRetour,
+          photosRetour: data.photosRetour ?? [],
+          observationsRetour: data.observationsRetour,
+          montantDegradation,
+          validateurId: req.user!.sub,
+        },
+      }),
+      prisma.materiel.update({ where: { id: dotation.materielId }, data: { statut: nouveauStatutMateriel, etat: data.etatRetour } }),
+    ]);
+    await audit({ userId: req.user!.sub, action: 'RESTITUTION', entite: 'Dotation', entiteId: dotation.id, details: { montantDegradation }, ip: req.ip });
+    res.json(updated);
+  }),
+);

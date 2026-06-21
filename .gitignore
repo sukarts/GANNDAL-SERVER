@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.next/
+.env
+.env.local
+deploy/.env
+deploy/certs/
+*.log
+.DS_Store
