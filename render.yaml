@@ -1,0 +1,62 @@
+# Render Blueprint — backend GANNDAL (API Express + Prisma)
+# Frontend = Vercel (voir frontend/vercel.json). DB + Storage = Supabase.
+# Déploiement : Render > New > Blueprint > pointer ce repo.
+services:
+  - type: web
+    name: ganndal-api
+    runtime: node
+    rootDir: backend
+    plan: starter
+    buildCommand: npm install && npx prisma generate && npm run build
+    # migrate deploy applique les migrations Supabase au lancement
+    startCommand: npx prisma migrate deploy && node dist/server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      # Secrets à renseigner dans le dashboard Render (sync:false = non versionné)
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        value: ganndal
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "true"
+      - key: S3_PUBLIC_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        value: "GANNDAL <no-reply@ganndal.media>"
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_ID
+        sync: false
