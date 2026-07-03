@@ -1,7 +1,5 @@
-# Production — backend + frontend + postgres + minio derrière Nginx.
-# Renseigner les secrets via un fichier .env à côté de ce compose.
-version: '3.9'
-
+# Production VPS unique — backend + frontend + postgres + minio derrière Nginx.
+# Tout self-hosted. Renseigner les secrets dans deploy/.env (voir .env.prod.example).
 services:
   postgres:
     image: postgres:16-alpine
@@ -25,20 +23,35 @@ services:
       - miniodata:/data
     networks: [ganndal]
 
+  # Crée le bucket "ganndal" (lecture publique) au démarrage
+  createbucket:
+    image: minio/mc:latest
+    depends_on: [minio]
+    networks: [ganndal]
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set local http://minio:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY}) do sleep 2; done;
+      /usr/bin/mc mb -p local/${S3_BUCKET};
+      /usr/bin/mc anonymous set download local/${S3_BUCKET};
+      exit 0;
+      "
+
   backend:
     build: ../backend
     restart: always
     env_file: .env
     depends_on: [postgres, minio]
     networks: [ganndal]
-    # migrate + start
-    command: sh -c "npx prisma migrate deploy && node dist/server.js"
+    # Applique le schéma (db push, pas de migrations) puis démarre
+    command: sh -c "npx prisma db push --skip-generate && node dist/server.js"
 
   frontend:
-    build: ../frontend
+    build:
+      context: ../frontend
+      args:
+        # Next inline les NEXT_PUBLIC_* au BUILD. Même origine derrière nginx => /api
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:-/api}
     restart: always
-    environment:
-      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
     depends_on: [backend]
     networks: [ganndal]
 

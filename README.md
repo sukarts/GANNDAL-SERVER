@@ -61,7 +61,8 @@ npm run dev                   # http://localhost:3000
 - [Spécification API REST](docs/API.md)
 - [Rôles & permissions](docs/ROLES.md)
 - [Maquettes d'écran](docs/SCREENS.md)
-- [Plan de déploiement Ubuntu](docs/DEPLOYMENT.md)
+- [Déploiement VPS unique (recommandé)](docs/DEPLOY_VPS.md)
+- [Plan de déploiement Ubuntu (natif/systemd)](docs/DEPLOYMENT.md)
 - [Déploiement avec Supabase](docs/SUPABASE.md)
 
 ## État d'implémentation

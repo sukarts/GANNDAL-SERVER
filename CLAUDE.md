@@ -19,14 +19,17 @@ Test : aucune suite automatisée pour l'instant (à ajouter : Vitest + supertest
 
 ## Deploy Configuration
 
-- Platform backend: Render (Blueprint `render.yaml`, rootDir `backend`)
-- Platform frontend: Vercel (rootDir `frontend`, `frontend/vercel.json`)
-- Database: Supabase Postgres (pooler `DATABASE_URL` + `DIRECT_URL`)
-- Storage: Supabase Storage (S3-compatible, bucket `ganndal`)
-- Production URL: (à renseigner après premier déploiement Vercel)
+Cible retenue : **VPS unique Ubuntu** (full self-host, Docker Compose).
+
+- Platform: VPS Ubuntu, `deploy/docker-compose.prod.yml` (backend + frontend + Postgres + MinIO + Nginx)
+- Database: PostgreSQL conteneur local (`db push`, pas de migrations)
+- Storage: MinIO conteneur local (bucket `ganndal`, servi via nginx `/files/`) — aucune limite d'upload
+- Frontend: Next.js, `NEXT_PUBLIC_API_URL=/api` (même origine derrière nginx, injecté au build)
+- Production URL: (à renseigner après déploiement)
 - Health check: `GET /api/health`
 
-Guide pas-à-pas : [docs/SUPABASE.md](docs/SUPABASE.md).
+Guide pas-à-pas : [docs/DEPLOY_VPS.md](docs/DEPLOY_VPS.md).
+Alternatives conservées : Render+Vercel (`render.yaml`, `frontend/vercel.json`), Supabase ([docs/SUPABASE.md](docs/SUPABASE.md)).
 
 ## Conventions
 
