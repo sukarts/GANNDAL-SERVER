@@ -14,13 +14,13 @@
 - Multi-devises : devise de base GNF, table `Currency`, convertisseur API, sélecteur frontend, PDF dans devise choisie (taux figé)
 - Alertes équipements : scan quotidien (node-cron 07:00) + `POST /alertes/run` — garantie proche, matériel non restitué, entretien en attente ; dédoublonnage 7 j
 - Notifications (interne + email + **WhatsApp Cloud API réel**) ; journal d'audit
-- Frontend Next.js : login, dashboards, listes (sujets, JRI, piges, matériel, dotations, rapports, audit)
+- Frontend Next.js : login, dashboards, listes + **formulaires de création** (sujet, JRI, équipement+QR, dotation, calcul de pige, PDF, marquer payée), gestion devises
 - Déploiement : Docker Compose (dev + prod), Dockerfiles, Nginx, systemd, sauvegarde
 
 ## 🟡 À compléter / brancher
-- **Formulaires de création** côté frontend (sujets, matériel, dotation) : les pages sont en lecture ;
-  les endpoints POST existent, brancher les modales/formulaires
 - **Signature électronique** : champ `signatureUrl` prêt ; intégrer un canvas de signature côté frontend
+- **Restitution / maintenance / incident** côté UI : endpoints prêts, formulaires à ajouter (dotation restitution, ticket maintenance)
+- **Upload d'éléments** côté UI : endpoint prêt (multipart S3) ; ajouter le composant d'upload sur la fiche sujet
 - **Pagination/filtre UI** : l'API pagine l'audit ; généraliser aux autres listes
 - **Tests automatisés** : non inclus (ajouter Vitest/Jest + supertest)
 
