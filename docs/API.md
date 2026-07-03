@@ -85,6 +85,14 @@ Devise de base = **GNF** (`tauxGnf = 1`). Tous les montants sont stockés en GNF
 
 `POST /paiements/:id/pdf?devise=USD` génère le PDF dans la devise demandée (taux figé imprimé).
 
+## Alertes (module équipements)
+Scan quotidien automatique (cron 07:00) + déclenchement manuel. Génère des notifications
+(interne + email) vers ADMIN/REDACTEUR pour : garantie proche d'expiration (30 j),
+matériel non restitué (> 90 j), entretien en attente (> 7 j). Dédoublonnage 7 j.
+| Méthode | Route | Rôle | Description |
+|---------|-------|------|-------------|
+| POST | `/alertes/run` | ADMIN, REDACTEUR | lance le scan, retourne `{ garantie, nonRestitue, entretien, total }` |
+
 ## Notifications & audit
 | Méthode | Route | Rôle | Description |
 |---------|-------|------|-------------|

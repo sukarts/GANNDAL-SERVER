@@ -12,14 +12,12 @@
 - Tableaux de bord admin & JRI
 - Rapports : activité (jour/semaine/mois), classement JRI, inventaire, dotations par JRI
 - Multi-devises : devise de base GNF, table `Currency`, convertisseur API, sélecteur frontend, PDF dans devise choisie (taux figé)
-- Notifications (interne + email ; WhatsApp stub) ; journal d'audit
+- Alertes équipements : scan quotidien (node-cron 07:00) + `POST /alertes/run` — garantie proche, matériel non restitué, entretien en attente ; dédoublonnage 7 j
+- Notifications (interne + email + **WhatsApp Cloud API réel**) ; journal d'audit
 - Frontend Next.js : login, dashboards, listes (sujets, JRI, piges, matériel, dotations, rapports, audit)
 - Déploiement : Docker Compose (dev + prod), Dockerfiles, Nginx, systemd, sauvegarde
 
 ## 🟡 À compléter / brancher
-- **WhatsApp Cloud API** : appel réel à implémenter dans `lib/notify.ts` (stub présent)
-- **Alertes équipements** (garantie proche, entretien programmé, matériel non restitué, inventaire) :
-  modèles prêts — ajouter un planificateur (cron/`node-cron`) qui scanne et appelle `notify()`
 - **Formulaires de création** côté frontend (sujets, matériel, dotation) : les pages sont en lecture ;
   les endpoints POST existent, brancher les modales/formulaires
 - **Signature électronique** : champ `signatureUrl` prêt ; intégrer un canvas de signature côté frontend
