@@ -99,7 +99,7 @@ done
 
 # --- 6. Seed (si base vide) ---
 echo "→ Seed initial..."
-docker compose -f docker-compose.prod.yml exec -T backend npx tsx prisma/seed.ts || \
+docker compose -f docker-compose.prod.yml exec -T backend npx -y tsx prisma/seed.ts || \
   echo "  (seed déjà appliqué ou à relancer manuellement)"
 
 echo ""
