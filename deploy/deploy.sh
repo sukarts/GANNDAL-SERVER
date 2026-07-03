@@ -9,7 +9,8 @@ cd "$(dirname "$0")"
 
 HOST="${1:-}"
 if [ -z "$HOST" ]; then
-  HOST="$(curl -s ifconfig.me || curl -s ipinfo.io/ip)"
+  # Forcer l'IPv4 (sinon curl peut renvoyer l'IPv6, qui casse le CORS)
+  HOST="$(curl -4 -s ifconfig.me || curl -4 -s ipinfo.io/ip)"
   SCHEME="http"
   echo "→ Aucun domaine fourni, utilisation de l'IP: $HOST (HTTP)"
 else
@@ -18,12 +19,17 @@ else
 fi
 BASE="$SCHEME://$HOST"
 
-# --- 1. Docker ---
+# --- 1. Docker (script officiel : inclut le plugin compose, contrairement au paquet Ubuntu) ---
 if ! command -v docker >/dev/null 2>&1; then
   echo "→ Installation de Docker..."
-  apt-get update -y
-  apt-get install -y docker.io docker-compose-plugin git curl
+  apt-get update -y && apt-get install -y curl git
+  curl -fsSL https://get.docker.com | sh
   systemctl enable --now docker
+fi
+# Vérifie que le plugin compose est présent
+if ! docker compose version >/dev/null 2>&1; then
+  echo "→ Installation du plugin docker compose..."
+  apt-get install -y docker-compose-plugin || true
 fi
 
 # --- 2. Génération du .env (idempotent : ne réécrit pas s'il existe) ---
