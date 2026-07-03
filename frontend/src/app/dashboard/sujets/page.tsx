@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
 
@@ -93,7 +94,9 @@ export default function SujetsPage() {
           <tbody>
             {sujets.map((s) => (
               <tr key={s.id} className="border-t">
-                <td className="p-3 font-mono text-xs">{s.reference}</td>
+                <td className="p-3 font-mono text-xs">
+                  <Link href={`/dashboard/sujets/${s.id}`} className="text-brand hover:underline">{s.reference}</Link>
+                </td>
                 <td className="p-3">{s.titre}</td>
                 <td className="p-3">{s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'}</td>
                 <td className="p-3">{s.priorite}</td>

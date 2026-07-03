@@ -29,6 +29,21 @@ export function clearSession(): void {
   localStorage.removeItem('ganndal_user');
 }
 
+// Upload multipart (fichiers) — ne pas fixer Content-Type (boundary auto)
+export async function apiUpload<T = unknown>(path: string, formData: FormData): Promise<T> {
+  const token = getToken();
+  const res = await fetch(`${API}${path}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Erreur ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
 export async function api<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const res = await fetch(`${API}${path}`, {

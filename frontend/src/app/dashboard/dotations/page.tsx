@@ -21,8 +21,23 @@ export default function DotationsPage() {
   const [form, setForm] = useState({ materielId: '', jriId: '', etatRemise: 'BON_ETAT', observations: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [restit, setRestit] = useState<Dotation | null>(null);
+  const [rForm, setRForm] = useState({ etatRetour: 'BON_ETAT', observationsRetour: '' });
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
+
+  async function restituer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!restit) return;
+    setSaving(true); setError('');
+    try {
+      await api(`/dotations/${restit.id}/restitution`, {
+        method: 'POST',
+        body: JSON.stringify({ etatRetour: rForm.etatRetour, observationsRetour: rForm.observationsRetour || undefined }),
+      });
+      setRestit(null); load();
+    } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
+  }
 
   function load() { api<Dotation[]>('/dotations').then(setList).catch(() => {}); }
   useEffect(load, []);
@@ -59,7 +74,7 @@ export default function DotationsPage() {
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
-            <tr><th className="p-3">Matériel</th><th className="p-3">Catégorie</th><th className="p-3">JRI</th><th className="p-3">Remise</th><th className="p-3">État remise</th><th className="p-3">Statut</th></tr>
+            <tr><th className="p-3">Matériel</th><th className="p-3">Catégorie</th><th className="p-3">JRI</th><th className="p-3">Remise</th><th className="p-3">État remise</th><th className="p-3">Statut</th><th className="p-3"></th></tr>
           </thead>
           <tbody>
             {list.map((d) => (
@@ -70,9 +85,14 @@ export default function DotationsPage() {
                 <td className="p-3">{new Date(d.dateRemise).toLocaleDateString('fr-FR')}</td>
                 <td className="p-3">{d.etatRemise}</td>
                 <td className="p-3">{d.statut}</td>
+                <td className="p-3 text-right">
+                  {peutCreer && d.statut === 'EN_COURS' && (
+                    <button onClick={() => { setRForm({ etatRetour: 'BON_ETAT', observationsRetour: '' }); setError(''); setRestit(d); }} className="text-xs underline text-brand">Restituer</button>
+                  )}
+                </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>Aucune dotation</td></tr>}
+            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={7}>Aucune dotation</td></tr>}
           </tbody>
         </table>
       </div>
@@ -97,6 +117,24 @@ export default function DotationsPage() {
           <textarea className={INPUT} rows={2} placeholder="Observations" value={form.observations} onChange={(e) => setForm({ ...form, observations: e.target.value })} />
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Enregistrement…' : 'Valider la remise'}
+          </button>
+        </form>
+      </Modal>
+
+      <Modal open={!!restit} title={`Restitution — ${restit?.materiel.reference ?? ''}`} onClose={() => setRestit(null)}>
+        <form onSubmit={restituer} className="space-y-3">
+          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          <label className="text-sm block">État au retour
+            <select className={INPUT} value={rForm.etatRetour} onChange={(e) => setRForm({ ...rForm, etatRetour: e.target.value })}>
+              <option value="NEUF">Neuf</option><option value="BON_ETAT">Bon état</option>
+              <option value="A_REPARER">À réparer</option><option value="HORS_SERVICE">Hors service</option>
+              <option value="PERDU">Perdu</option><option value="VOLE">Volé</option>
+            </select>
+          </label>
+          <textarea className={INPUT} rows={2} placeholder="Observations retour" value={rForm.observationsRetour} onChange={(e) => setRForm({ ...rForm, observationsRetour: e.target.value })} />
+          <p className="text-xs text-gray-400">Dégradation calculée automatiquement selon l’état (% du coût d’acquisition).</p>
+          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+            {saving ? 'Enregistrement…' : 'Valider la restitution'}
           </button>
         </form>
       </Modal>
