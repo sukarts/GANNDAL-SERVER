@@ -14,6 +14,7 @@ const NAV: { href: string; label: string; roles: AuthUser['role'][] }[] = [
   { href: '/dashboard/materiel', label: 'Équipements', roles: ['ADMIN', 'REDACTEUR', 'COMPTABLE'] },
   { href: '/dashboard/dotations', label: 'Dotations', roles: ['ADMIN', 'REDACTEUR', 'JRI'] },
   { href: '/dashboard/rapports', label: 'Rapports', roles: ['ADMIN', 'REDACTEUR', 'COMPTABLE'] },
+  { href: '/dashboard/utilisateurs', label: 'Utilisateurs', roles: ['ADMIN'] },
   { href: '/dashboard/devises', label: 'Devises', roles: ['ADMIN'] },
   { href: '/dashboard/audit', label: 'Audit', roles: ['ADMIN'] },
 ];

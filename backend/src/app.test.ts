@@ -27,6 +27,16 @@ describe('API', () => {
     expect(res.status).toBe(401);
   });
 
+  it('PATCH /api/auth/profile sans token -> 401', async () => {
+    const res = await request(app).patch('/api/auth/profile').send({ nom: 'X' });
+    expect(res.status).toBe(401);
+  });
+
+  it('PATCH /api/users/:id sans token -> 401', async () => {
+    const res = await request(app).patch('/api/users/abc').send({ nom: 'X' });
+    expect(res.status).toBe(401);
+  });
+
   it('route inconnue -> 404', async () => {
     const res = await request(app).get('/api/inexistant');
     expect(res.status).toBe(404);

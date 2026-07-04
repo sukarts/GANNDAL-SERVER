@@ -11,15 +11,19 @@ Réponses d'erreur : `{ "error": string, "details"?: any }` avec le code HTTP ap
 | POST | `/auth/refresh` | public | `{ refreshToken }` → `{ accessToken }` |
 | POST | `/auth/logout` | auth | révoque le refresh token |
 | GET | `/auth/me` | auth | profil courant (+ jriProfile) |
+| PATCH | `/auth/profile` | auth | met à jour son profil (nom, prénom, téléphone) |
+| POST | `/auth/change-password` | auth | change son mot de passe (révoque les sessions) |
 
 ## Utilisateurs / JRI
 | Méthode | Route | Rôle | Description |
 |---------|-------|------|-------------|
 | GET | `/users?role=JRI` | ADMIN, REDACTEUR, COMPTABLE | liste (filtre rôle) |
-| POST | `/users` | ADMIN | création (crée JriProfile si role=JRI) |
+| POST | `/users` | ADMIN | création (tous rôles ; crée JriProfile si role=JRI) |
 | GET | `/users/:id` | auth | fiche + historique livraisons / dotations / fiches |
+| PATCH | `/users/:id` | ADMIN | édition (nom, prénom, email, téléphone, rôle, actif) |
 | PATCH | `/users/:id/jri-profile` | ADMIN | tarifs (sujet/minute/personnalisé), IBAN, spécialité |
 | PATCH | `/users/:id/toggle-actif` | ADMIN | activer/désactiver |
+| POST | `/users/:id/reset-password` | ADMIN | réinitialise le mot de passe |
 
 ## Sujets
 | Méthode | Route | Rôle | Description |

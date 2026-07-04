@@ -29,6 +29,12 @@ export function clearSession(): void {
   localStorage.removeItem('ganndal_user');
 }
 
+// Met à jour les infos utilisateur en cache (après édition de profil)
+export function updateStoredUser(patch: Partial<AuthUser>): void {
+  const u = getUser();
+  if (u) localStorage.setItem('ganndal_user', JSON.stringify({ ...u, ...patch }));
+}
+
 // Upload multipart (fichiers) — ne pas fixer Content-Type (boundary auto)
 export async function apiUpload<T = unknown>(path: string, formData: FormData): Promise<T> {
   const token = getToken();

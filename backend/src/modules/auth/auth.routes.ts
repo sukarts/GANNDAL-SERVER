@@ -65,6 +65,25 @@ authRouter.post(
   }),
 );
 
+// Mise à jour de son propre profil (champs non sensibles)
+const profilSchema = z.object({
+  nom: z.string().min(1).optional(),
+  prenom: z.string().min(1).optional(),
+  telephone: z.string().optional(),
+});
+
+authRouter.patch(
+  '/profile',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const data = profilSchema.parse(req.body);
+    const user = await prisma.user.update({ where: { id: req.user!.sub }, data });
+    await audit({ userId: user.id, action: 'UPDATE', entite: 'User', entiteId: user.id, details: { profil: data }, ip: req.ip });
+    const { passwordHash, ...safe } = user;
+    res.json(safe);
+  }),
+);
+
 const changePwdSchema = z.object({
   ancienMotDePasse: z.string().min(1),
   nouveauMotDePasse: z.string().min(6),

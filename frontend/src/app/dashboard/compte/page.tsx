@@ -1,17 +1,33 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, clearSession, getUser } from '@/lib/api';
+import { api, clearSession, getUser, updateStoredUser, type AuthUser } from '@/lib/api';
 
 const INPUT = 'w-full border rounded px-3 py-2 text-sm';
 
 export default function ComptePage() {
   const router = useRouter();
   const user = typeof window !== 'undefined' ? getUser() : null;
+  const [profil, setProfil] = useState({ prenom: user?.prenom ?? '', nom: user?.nom ?? '', telephone: '' });
+  const [profilMsg, setProfilMsg] = useState('');
+  const [savingProfil, setSavingProfil] = useState(false);
   const [form, setForm] = useState({ ancien: '', nouveau: '', confirme: '' });
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  async function saveProfil(e: React.FormEvent) {
+    e.preventDefault();
+    setProfilMsg(''); setSavingProfil(true);
+    try {
+      const u = await api<AuthUser>('/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ prenom: profil.prenom, nom: profil.nom, telephone: profil.telephone || undefined }),
+      });
+      updateStoredUser({ prenom: u.prenom, nom: u.nom });
+      setProfilMsg('Profil mis à jour.');
+    } catch (err) { setProfilMsg((err as Error).message); } finally { setSavingProfil(false); }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +48,22 @@ export default function ComptePage() {
   return (
     <div className="max-w-md">
       <h1 className="text-2xl font-bold mb-1">Mon compte</h1>
-      <p className="text-sm text-gray-500 mb-6">{user?.prenom} {user?.nom} · {user?.email} · {user?.role}</p>
+      <p className="text-sm text-gray-500 mb-6">{user?.email} · {user?.role}</p>
+
+      <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
+        <h2 className="font-semibold mb-4">Profil</h2>
+        {profilMsg && <p className="text-sm bg-gray-50 p-2 rounded mb-3">{profilMsg}</p>}
+        <form onSubmit={saveProfil} className="space-y-3">
+          <div className="flex gap-3">
+            <input required className={INPUT} placeholder="Prénom" value={profil.prenom} onChange={(e) => setProfil({ ...profil, prenom: e.target.value })} />
+            <input required className={INPUT} placeholder="Nom" value={profil.nom} onChange={(e) => setProfil({ ...profil, nom: e.target.value })} />
+          </div>
+          <input className={INPUT} placeholder="Téléphone (WhatsApp)" value={profil.telephone} onChange={(e) => setProfil({ ...profil, telephone: e.target.value })} />
+          <button disabled={savingProfil} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark disabled:opacity-50">
+            {savingProfil ? 'Enregistrement…' : 'Enregistrer le profil'}
+          </button>
+        </form>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm p-5">
         <h2 className="font-semibold mb-4">Changer le mot de passe</h2>

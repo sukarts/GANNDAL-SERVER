@@ -131,3 +131,42 @@ usersRouter.patch(
     res.json({ id: updated.id, actif: updated.actif });
   }),
 );
+
+// Édition des champs de base d'un utilisateur (ADMIN)
+const updateUserSchema = z.object({
+  email: z.string().email().optional(),
+  nom: z.string().min(1).optional(),
+  prenom: z.string().min(1).optional(),
+  telephone: z.string().optional(),
+  role: z.enum(['ADMIN', 'REDACTEUR', 'JRI', 'COMPTABLE']).optional(),
+  actif: z.boolean().optional(),
+});
+
+usersRouter.patch(
+  '/:id',
+  requireRole('ADMIN'),
+  asyncHandler(async (req, res) => {
+    const data = updateUserSchema.parse(req.body);
+    if (data.email) {
+      const exists = await prisma.user.findFirst({ where: { email: data.email, id: { not: req.params.id } } });
+      if (exists) throw badRequest('Email déjà utilisé');
+    }
+    const user = await prisma.user.update({ where: { id: req.params.id }, data });
+    await audit({ userId: req.user!.sub, action: 'UPDATE', entite: 'User', entiteId: user.id, details: data, ip: req.ip });
+    const { passwordHash, ...safe } = user;
+    res.json(safe);
+  }),
+);
+
+// Réinitialisation du mot de passe d'un utilisateur par un admin
+usersRouter.post(
+  '/:id/reset-password',
+  requireRole('ADMIN'),
+  asyncHandler(async (req, res) => {
+    const nouveau = z.object({ nouveauMotDePasse: z.string().min(6) }).parse(req.body).nouveauMotDePasse;
+    await prisma.user.update({ where: { id: req.params.id }, data: { passwordHash: await bcrypt.hash(nouveau, 10) } });
+    await prisma.refreshToken.updateMany({ where: { userId: req.params.id }, data: { revoked: true } });
+    await audit({ userId: req.user!.sub, action: 'RESET_PASSWORD', entite: 'User', entiteId: req.params.id, ip: req.ip });
+    res.json({ ok: true });
+  }),
+);
