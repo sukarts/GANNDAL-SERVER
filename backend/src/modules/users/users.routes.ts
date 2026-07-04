@@ -126,7 +126,8 @@ usersRouter.post(
        <p><a href="${lien}">${lien}</a></p>`,
     );
     await audit({ userId: req.user!.sub, action: 'INVITE', entite: 'User', entiteId: user.id, ip: req.ip });
-    res.status(201).json({ id: user.id, email: user.email, invited: true });
+    // Le lien est renvoyé pour partage manuel (fallback si l'email ne part pas)
+    res.status(201).json({ id: user.id, email: user.email, invited: true, lien, expireLe: expiry });
   }),
 );
 

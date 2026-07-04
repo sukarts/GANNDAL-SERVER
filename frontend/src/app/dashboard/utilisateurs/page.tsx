@@ -23,6 +23,7 @@ export default function UtilisateursPage() {
   const [open, setOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [invite, setInvite] = useState({ email: '', nom: '', prenom: '', telephone: '', role: 'REDACTEUR' });
+  const [lienInvit, setLienInvit] = useState('');
   const [edit, setEdit] = useState<User | null>(null);
   const [form, setForm] = useState(emptyCreate);
   const [saving, setSaving] = useState(false);
@@ -32,9 +33,9 @@ export default function UtilisateursPage() {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      await api('/users/invite', { method: 'POST', body: JSON.stringify({ ...invite, telephone: invite.telephone || undefined }) });
+      const r = await api<{ lien: string }>('/users/invite', { method: 'POST', body: JSON.stringify({ ...invite, telephone: invite.telephone || undefined }) });
       setInviteOpen(false); setInvite({ email: '', nom: '', prenom: '', telephone: '', role: 'REDACTEUR' }); load();
-      alert('Invitation envoyée par email.');
+      setLienInvit(r.lien); // affiché pour partage manuel
     } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
   }
   const me = typeof window !== 'undefined' ? getUser() : null;
@@ -92,6 +93,20 @@ export default function UtilisateursPage() {
         </div>
       </div>
       {error && !open && !edit && <p className="text-red-600 mb-3">{error}</p>}
+
+      {lienInvit && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-green-800">Invitation créée — lien d’activation (valable 7 j)</span>
+            <button onClick={() => setLienInvit('')} className="text-green-700 text-xs underline">Fermer</button>
+          </div>
+          <div className="flex gap-2">
+            <input readOnly value={lienInvit} className="flex-1 border rounded px-2 py-1 text-xs bg-white" onFocus={(e) => e.target.select()} />
+            <button onClick={() => { navigator.clipboard.writeText(lienInvit); }} className="bg-brand text-white rounded px-3 py-1 text-xs">Copier</button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Un email a aussi été tenté. Si l’utilisateur ne le reçoit pas, envoyez-lui ce lien (WhatsApp, etc.).</p>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
