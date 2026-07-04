@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
 
@@ -60,7 +61,9 @@ export default function JriPage() {
           <tbody>
             {list.map((j) => (
               <tr key={j.id} className="border-t">
-                <td className="p-3">{j.prenom} {j.nom}</td>
+                <td className="p-3">
+                  <Link href={`/dashboard/jri/${j.id}`} className="text-brand hover:underline">{j.prenom} {j.nom}</Link>
+                </td>
                 <td className="p-3">{j.email}</td>
                 <td className="p-3">{j.jriProfile?.specialite ?? '—'}</td>
                 <td className="p-3">{j.jriProfile?.tarifParSujet ?? '—'}</td>
