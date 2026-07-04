@@ -13,7 +13,7 @@ export default function AuditPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Journal d&apos;audit</h1>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">Date</th><th className="p-3">Utilisateur</th><th className="p-3">Action</th><th className="p-3">Entité</th><th className="p-3">ID</th></tr></thead>
           <tbody>

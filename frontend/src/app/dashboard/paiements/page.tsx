@@ -83,7 +83,7 @@ export default function PaiementsPage() {
           {peutCalculer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">Calculer une pige</button>}
         </div>
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr><th className="p-3">Référence</th><th className="p-3">JRI</th><th className="p-3">Période</th><th className="p-3">Sujets</th><th className="p-3">Minutes</th><th className="p-3">Total</th><th className="p-3">Statut</th><th className="p-3"></th></tr>

@@ -52,7 +52,7 @@ export default function JriPage() {
         <h1 className="text-2xl font-bold">JRI / Pigistes</h1>
         {isAdmin && <button onClick={() => { setForm(empty); setError(''); setOpen(true); }} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouveau JRI</button>}
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr><th className="p-3">Nom</th><th className="p-3">Email</th><th className="p-3">Spécialité</th><th className="p-3">Tarif/sujet</th><th className="p-3">Tarif/min</th><th className="p-3">Actif</th></tr>

@@ -136,7 +136,7 @@ export default function SujetDetailPage() {
 
       {/* Éléments */}
       <h2 className="font-semibold mb-2">Éléments déposés</h2>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto mb-6">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">Type</th><th className="p-3">Fichier</th><th className="p-3">Version</th><th className="p-3">Taille</th><th className="p-3"></th></tr></thead>
           <tbody>

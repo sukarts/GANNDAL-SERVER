@@ -83,7 +83,7 @@ export default function SujetsPage() {
         )}
       </div>
       {error && !open && <p className="text-red-600 mb-3">{error}</p>}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr>

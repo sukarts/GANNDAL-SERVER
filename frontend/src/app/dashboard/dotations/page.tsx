@@ -97,7 +97,7 @@ export default function DotationsPage() {
         <h1 className="text-2xl font-bold">Dotations</h1>
         {peutCreer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvelle dotation</button>}
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr><th className="p-3">Matériel</th><th className="p-3">Catégorie</th><th className="p-3">JRI</th><th className="p-3">Remise</th><th className="p-3">État remise</th><th className="p-3">Statut</th><th className="p-3"></th></tr>

@@ -65,7 +65,7 @@ export default function DevisesPage() {
       </p>
       {msg && <p className="text-sm mb-4 bg-amber-50 text-amber-800 p-2 rounded">{msg}</p>}
 
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto mb-6">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr><th className="p-3">Code</th><th className="p-3">Nom</th><th className="p-3">Symbole</th><th className="p-3">Taux (GNF / unité)</th><th className="p-3">Défaut</th><th className="p-3">Actif</th></tr>

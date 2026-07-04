@@ -39,7 +39,7 @@ export default function RapportsPage() {
       )}
 
       <h2 className="font-semibold mb-2">Classement des JRI</h2>
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">#</th><th className="p-3">JRI</th><th className="p-3">Sujets</th><th className="p-3">Minutes</th></tr></thead>
           <tbody>
