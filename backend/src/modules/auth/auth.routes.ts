@@ -65,6 +65,61 @@ authRouter.post(
   }),
 );
 
+// ---- Invitations (public) ----
+
+// Valide un token d'invitation et renvoie les infos du compte à activer
+authRouter.get(
+  '/invitation/:token',
+  asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { invitationToken: req.params.token } });
+    if (!user || !user.invitationExpiry || user.invitationExpiry < new Date()) {
+      throw badRequest('Invitation invalide ou expirée');
+    }
+    res.json({ email: user.email, prenom: user.prenom, nom: user.nom, role: user.role });
+  }),
+);
+
+// Accepte l'invitation : définit le mot de passe, active le compte, connecte
+const acceptSchema = z.object({
+  token: z.string().min(1),
+  motDePasse: z.string().min(6),
+});
+
+authRouter.post(
+  '/accept-invitation',
+  asyncHandler(async (req, res) => {
+    const { token, motDePasse } = acceptSchema.parse(req.body);
+    const user = await prisma.user.findUnique({ where: { invitationToken: token } });
+    if (!user || !user.invitationExpiry || user.invitationExpiry < new Date()) {
+      throw badRequest('Invitation invalide ou expirée');
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: await bcrypt.hash(motDePasse, 10),
+        actif: true,
+        invitationToken: null,
+        invitationExpiry: null,
+      },
+    });
+
+    const payload = { sub: updated.id, role: updated.role, email: updated.email };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+    await prisma.refreshToken.create({
+      data: { token: refreshToken, userId: updated.id, expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000) },
+    });
+    await audit({ userId: updated.id, action: 'ACCEPT_INVITATION', entite: 'User', entiteId: updated.id, ip: req.ip });
+
+    res.json({
+      accessToken,
+      refreshToken,
+      user: { id: updated.id, email: updated.email, nom: updated.nom, prenom: updated.prenom, role: updated.role },
+    });
+  }),
+);
+
 // Mise à jour de son propre profil (champs non sensibles)
 const profilSchema = z.object({
   nom: z.string().min(1).optional(),

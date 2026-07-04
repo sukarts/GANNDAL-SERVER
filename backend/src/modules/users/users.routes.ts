@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'node:crypto';
 import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
 import { asyncHandler, notFound, badRequest } from '../../lib/http.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 import { audit } from '../../lib/audit.js';
+import { env } from '../../config/env.js';
+import { sendEmail } from '../../lib/mailer.js';
 
 export const usersRouter = Router();
 usersRouter.use(authenticate);
@@ -74,6 +77,56 @@ usersRouter.post(
     await audit({ userId: req.user!.sub, action: 'CREATE', entite: 'User', entiteId: user.id, ip: req.ip });
     const { passwordHash, ...safe } = user;
     res.status(201).json(safe);
+  }),
+);
+
+// Invitation par email : crée un compte sans mot de passe + envoie un lien
+const inviteSchema = z.object({
+  email: z.string().email(),
+  nom: z.string().min(1),
+  prenom: z.string().min(1),
+  telephone: z.string().optional(),
+  role: z.enum(['ADMIN', 'REDACTEUR', 'JRI', 'COMPTABLE']),
+});
+
+usersRouter.post(
+  '/invite',
+  requireRole('ADMIN'),
+  asyncHandler(async (req, res) => {
+    const data = inviteSchema.parse(req.body);
+    const exists = await prisma.user.findUnique({ where: { email: data.email } });
+    if (exists) throw badRequest('Email déjà utilisé');
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiry = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 jours
+
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        // Mot de passe aléatoire inutilisable tant que l'invitation n'est pas acceptée
+        passwordHash: await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10),
+        nom: data.nom,
+        prenom: data.prenom,
+        telephone: data.telephone,
+        role: data.role,
+        actif: false,
+        invitationToken: token,
+        invitationExpiry: expiry,
+        jriProfile: data.role === 'JRI' ? { create: {} } : undefined,
+      },
+    });
+
+    const lien = `${env.corsOrigin}/invitation?token=${token}`;
+    await sendEmail(
+      data.email,
+      'Invitation à rejoindre GANNDAL',
+      `<p>Bonjour ${data.prenom},</p>
+       <p>Un compte <b>${data.role}</b> a été créé pour vous sur GANNDAL.</p>
+       <p>Définissez votre mot de passe pour activer votre compte (lien valable 7 jours) :</p>
+       <p><a href="${lien}">${lien}</a></p>`,
+    );
+    await audit({ userId: req.user!.sub, action: 'INVITE', entite: 'User', entiteId: user.id, ip: req.ip });
+    res.status(201).json({ id: user.id, email: user.email, invited: true });
   }),
 );
 

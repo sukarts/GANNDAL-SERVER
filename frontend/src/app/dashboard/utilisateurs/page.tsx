@@ -21,10 +21,22 @@ export default function UtilisateursPage() {
   const [list, setList] = useState<User[]>([]);
   const [filtre, setFiltre] = useState('');
   const [open, setOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [invite, setInvite] = useState({ email: '', nom: '', prenom: '', telephone: '', role: 'REDACTEUR' });
   const [edit, setEdit] = useState<User | null>(null);
   const [form, setForm] = useState(emptyCreate);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  async function sendInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true); setError('');
+    try {
+      await api('/users/invite', { method: 'POST', body: JSON.stringify({ ...invite, telephone: invite.telephone || undefined }) });
+      setInviteOpen(false); setInvite({ email: '', nom: '', prenom: '', telephone: '', role: 'REDACTEUR' }); load();
+      alert('Invitation envoyée par email.');
+    } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
+  }
   const me = typeof window !== 'undefined' ? getUser() : null;
 
   function load() { api<User[]>('/users').then(setList).catch((e) => setError((e as Error).message)); }
@@ -75,6 +87,7 @@ export default function UtilisateursPage() {
             <option value="">Tous les rôles</option>
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
+          <button onClick={() => { setError(''); setInviteOpen(true); }} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Inviter par email</button>
           <button onClick={() => { setForm(emptyCreate); setError(''); setOpen(true); }} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvel utilisateur</button>
         </div>
       </div>
@@ -121,6 +134,23 @@ export default function UtilisateursPage() {
           </select>
           <p className="text-xs text-gray-400">Pour un JRI, les tarifs se règlent ensuite sur sa fiche.</p>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Création…' : 'Créer'}</button>
+        </form>
+      </Modal>
+
+      <Modal open={inviteOpen} title="Inviter par email" onClose={() => setInviteOpen(false)}>
+        <form onSubmit={sendInvite} className="space-y-3">
+          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          <div className="flex gap-3">
+            <input required className={INPUT} placeholder="Prénom" value={invite.prenom} onChange={(e) => setInvite({ ...invite, prenom: e.target.value })} />
+            <input required className={INPUT} placeholder="Nom" value={invite.nom} onChange={(e) => setInvite({ ...invite, nom: e.target.value })} />
+          </div>
+          <input required type="email" className={INPUT} placeholder="Email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
+          <input className={INPUT} placeholder="Téléphone" value={invite.telephone} onChange={(e) => setInvite({ ...invite, telephone: e.target.value })} />
+          <select className={INPUT} value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}>
+            {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+          </select>
+          <p className="text-xs text-gray-400">L'utilisateur reçoit un lien pour définir son mot de passe (valable 7 jours).</p>
+          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Envoi…' : 'Envoyer l\'invitation'}</button>
         </form>
       </Modal>
 

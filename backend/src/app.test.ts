@@ -37,6 +37,16 @@ describe('API', () => {
     expect(res.status).toBe(401);
   });
 
+  it('POST /api/users/invite sans token -> 401', async () => {
+    const res = await request(app).post('/api/users/invite').send({ email: 'a@b.com' });
+    expect(res.status).toBe(401);
+  });
+
+  it('POST /api/auth/accept-invitation corps invalide -> 400', async () => {
+    const res = await request(app).post('/api/auth/accept-invitation').send({ token: 'x' });
+    expect(res.status).toBe(400);
+  });
+
   it('route inconnue -> 404', async () => {
     const res = await request(app).get('/api/inexistant');
     expect(res.status).toBe(404);

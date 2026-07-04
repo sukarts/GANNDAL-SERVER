@@ -13,12 +13,15 @@ Réponses d'erreur : `{ "error": string, "details"?: any }` avec le code HTTP ap
 | GET | `/auth/me` | auth | profil courant (+ jriProfile) |
 | PATCH | `/auth/profile` | auth | met à jour son profil (nom, prénom, téléphone) |
 | POST | `/auth/change-password` | auth | change son mot de passe (révoque les sessions) |
+| GET | `/auth/invitation/:token` | public | valide un token d'invitation |
+| POST | `/auth/accept-invitation` | public | définit le mot de passe, active, connecte |
 
 ## Utilisateurs / JRI
 | Méthode | Route | Rôle | Description |
 |---------|-------|------|-------------|
 | GET | `/users?role=JRI` | ADMIN, REDACTEUR, COMPTABLE | liste (filtre rôle) |
 | POST | `/users` | ADMIN | création (tous rôles ; crée JriProfile si role=JRI) |
+| POST | `/users/invite` | ADMIN | invite par email (compte inactif + lien d'activation 7 j) |
 | GET | `/users/:id` | auth | fiche + historique livraisons / dotations / fiches |
 | PATCH | `/users/:id` | ADMIN | édition (nom, prénom, email, téléphone, rôle, actif) |
 | PATCH | `/users/:id/jri-profile` | ADMIN | tarifs (sujet/minute/personnalisé), IBAN, spécialité |
