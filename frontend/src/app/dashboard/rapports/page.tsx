@@ -19,11 +19,14 @@ export default function RapportsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Rapports</h1>
-        <select value={periode} onChange={(e) => setPeriode(e.target.value)} className="border rounded px-3 py-1">
-          <option value="jour">Journalier</option>
-          <option value="semaine">Hebdomadaire</option>
-          <option value="mois">Mensuel</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <select value={periode} onChange={(e) => setPeriode(e.target.value)} className="border rounded px-3 py-1">
+            <option value="jour">Journalier</option>
+            <option value="semaine">Hebdomadaire</option>
+            <option value="mois">Mensuel</option>
+          </select>
+          <button onClick={() => window.print()} className="border rounded px-3 py-1 text-sm hover:bg-gray-50">Imprimer / PDF</button>
+        </div>
       </div>
 
       {act && (

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api, getUser } from '@/lib/api';
+import { api, apiDownload, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
 
@@ -21,8 +21,15 @@ export default function PaiementsPage() {
   const [form, setForm] = useState({ jriId: '', annee: String(now.getFullYear()), mois: String(now.getMonth() + 1), bonus: '', penalites: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [periode, setPeriode] = useState({ annee: String(now.getFullYear()), mois: String(now.getMonth() + 1) });
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCalculer = user?.role === 'ADMIN' || user?.role === 'COMPTABLE';
+
+  async function exportExcel() {
+    try {
+      await apiDownload(`/paiements/export/excel?annee=${periode.annee}&mois=${periode.mois}`, `paie-${periode.annee}-${periode.mois}.xlsx`);
+    } catch (e) { alert((e as Error).message); }
+  }
 
   function load() { api<Fiche[]>('/paiements').then(setList).catch(() => {}); }
   useEffect(load, []);
@@ -65,7 +72,16 @@ export default function PaiementsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Piges & paiements</h1>
-        {peutCalculer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">Calculer une pige</button>}
+        <div className="flex items-center gap-2">
+          {peutCalculer && (
+            <>
+              <input type="number" className="border rounded px-2 py-1 text-sm w-20" value={periode.annee} onChange={(e) => setPeriode({ ...periode, annee: e.target.value })} />
+              <input type="number" min={1} max={12} className="border rounded px-2 py-1 text-sm w-16" value={periode.mois} onChange={(e) => setPeriode({ ...periode, mois: e.target.value })} />
+              <button onClick={exportExcel} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Export Excel</button>
+            </>
+          )}
+          {peutCalculer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">Calculer une pige</button>}
+        </div>
       </div>
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">
