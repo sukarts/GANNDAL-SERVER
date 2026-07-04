@@ -14,16 +14,11 @@
 - Multi-devises : devise de base GNF, table `Currency`, convertisseur API, sélecteur frontend, PDF dans devise choisie (taux figé)
 - Alertes équipements : scan quotidien (node-cron 07:00) + `POST /alertes/run` — garantie proche, matériel non restitué, entretien en attente ; dédoublonnage 7 j
 - Notifications (interne + email + **WhatsApp Cloud API réel**) ; journal d'audit
-- Frontend Next.js : login, dashboards, listes + **formulaires de création** (sujet, JRI, équipement+QR, dotation, calcul de pige, PDF, marquer payée), gestion devises
-- Déploiement : Docker Compose (dev + prod), Dockerfiles, Nginx, systemd, sauvegarde
+- Frontend Next.js : login, dashboards, listes + **formulaires de création** (sujet, JRI, équipement+QR, dotation, calcul de pige, PDF, marquer payée), fiches détail sujet/matériel, signature électronique, photos matériel, changement mot de passe, cloche notifications, export Excel, responsive mobile
+- Tests : Vitest — logique pure (calc, 9 tests) + endpoints supertest (5 tests) = 14 tests
+- Déploiement : Docker Compose (dev + prod), Dockerfiles, Nginx, scripts one-shot (deploy.sh, deploy-https.sh), CI GitHub Actions (`.github/workflows/ci.yml`)
 
 ## 🟡 À compléter / brancher
-- **Tests** : Vitest en place (logique pure calc — 9 tests) ; ajouter supertest (endpoints) + tests d'intégration DB
+- **Tests d'intégration DB** : supertest avec base de test jetable (endpoints DB-dépendants)
 - **Pagination/filtre UI** : l'API pagine l'audit ; généraliser aux autres listes
-- **Tests automatisés** : non inclus (ajouter Vitest/Jest + supertest)
-
-## Prochaines étapes recommandées
-1. `npm install` dans `backend/` et `frontend/`
-2. `docker compose up -d postgres minio` puis `npx prisma migrate dev` + `npm run seed`
-3. Brancher les formulaires de création et le planificateur d'alertes
-4. Ajouter une suite de tests + CI
+- **Graphiques** : dashboard utilise un graphe maison ; option lib (Recharts) pour rapports
