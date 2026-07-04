@@ -19,8 +19,7 @@
 
 ## 🟡 À compléter / brancher
 - **Signature électronique** : champ `signatureUrl` prêt ; intégrer un canvas de signature côté frontend
-- **Maintenance / incident** côté UI : endpoints prêts, formulaires à ajouter (ticket maintenance, déclaration incident)
-- **Upload** : nécessite le bucket Supabase Storage `ganndal` + clés S3 pour fonctionner en runtime (code prêt)
+- **Tests automatisés** : à ajouter (Vitest + supertest)
 - **Pagination/filtre UI** : l'API pagine l'audit ; généraliser aux autres listes
 - **Tests automatisés** : non inclus (ajouter Vitest/Jest + supertest)
 

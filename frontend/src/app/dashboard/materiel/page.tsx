@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
@@ -92,7 +93,9 @@ export default function MaterielPage() {
           <tbody>
             {list.map((m) => (
               <tr key={m.id} className="border-t">
-                <td className="p-3 font-mono text-xs">{m.reference}</td>
+                <td className="p-3 font-mono text-xs">
+                  <Link href={`/dashboard/materiel/${m.id}`} className="text-brand hover:underline">{m.reference}</Link>
+                </td>
                 <td className="p-3">{m.numInventaire}</td>
                 <td className="p-3">{m.categorie?.nom}</td>
                 <td className="p-3">{[m.marque, m.modele].filter(Boolean).join(' ')}</td>
