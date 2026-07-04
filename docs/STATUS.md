@@ -18,7 +18,6 @@
 - Déploiement : Docker Compose (dev + prod), Dockerfiles, Nginx, systemd, sauvegarde
 
 ## 🟡 À compléter / brancher
-- **Signature électronique** : champ `signatureUrl` prêt ; intégrer un canvas de signature côté frontend
 - **Tests automatisés** : à ajouter (Vitest + supertest)
 - **Pagination/filtre UI** : l'API pagine l'audit ; généraliser aux autres listes
 - **Tests automatisés** : non inclus (ajouter Vitest/Jest + supertest)

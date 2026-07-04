@@ -80,6 +80,17 @@ dotationsRouter.post(
     const kind = (req.body.kind as string) ?? 'photo'; // photo | signature | photoRetour
     const key = `dotations/${req.params.id}/${kind}-${Date.now()}-${req.file.originalname}`;
     const url = await uploadObject(key, req.file.buffer, req.file.mimetype);
+
+    // Persiste le fichier sur la dotation selon son type
+    const dotation = await prisma.dotation.findUnique({ where: { id: req.params.id } });
+    if (!dotation) throw notFound();
+    if (kind === 'signature') {
+      await prisma.dotation.update({ where: { id: dotation.id }, data: { signatureUrl: url } });
+    } else if (kind === 'photoRetour') {
+      await prisma.dotation.update({ where: { id: dotation.id }, data: { photosRetour: { push: url } } });
+    } else {
+      await prisma.dotation.update({ where: { id: dotation.id }, data: { photosRemise: { push: url } } });
+    }
     res.status(201).json({ url });
   }),
 );

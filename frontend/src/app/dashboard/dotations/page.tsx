@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { api, getUser } from '@/lib/api';
+import { useEffect, useRef, useState } from 'react';
+import { api, apiUpload, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
+import SignaturePad, { type SignatureHandle } from '@/components/SignaturePad';
 
 interface Dotation {
   id: string; dateRemise: string; statut: string; etatRemise: string;
@@ -23,6 +24,7 @@ export default function DotationsPage() {
   const [error, setError] = useState('');
   const [restit, setRestit] = useState<Dotation | null>(null);
   const [rForm, setRForm] = useState({ etatRetour: 'BON_ETAT', observationsRetour: '' });
+  const sigRef = useRef<SignatureHandle>(null);
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
@@ -54,13 +56,23 @@ export default function DotationsPage() {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      await api('/dotations', {
+      const dotation = await api<{ id: string }>('/dotations', {
         method: 'POST',
         body: JSON.stringify({
           materielId: form.materielId, jriId: form.jriId,
           etatRemise: form.etatRemise, observations: form.observations || undefined,
         }),
       });
+      // Signature électronique du JRI (si dessinée)
+      if (sigRef.current && !sigRef.current.isEmpty()) {
+        const blob = await sigRef.current.toBlob();
+        if (blob) {
+          const fd = new FormData();
+          fd.append('fichier', new File([blob], 'signature.png', { type: 'image/png' }));
+          fd.append('kind', 'signature');
+          await apiUpload(`/dotations/${dotation.id}/fichier`, fd);
+        }
+      }
       setOpen(false); load();
     } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
   }
@@ -115,6 +127,13 @@ export default function DotationsPage() {
             </select>
           </label>
           <textarea className={INPUT} rows={2} placeholder="Observations" value={form.observations} onChange={(e) => setForm({ ...form, observations: e.target.value })} />
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm text-gray-600">Signature du JRI</label>
+              <button type="button" onClick={() => sigRef.current?.clear()} className="text-xs underline text-gray-500">Effacer</button>
+            </div>
+            <SignaturePad ref={sigRef} />
+          </div>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Enregistrement…' : 'Valider la remise'}
           </button>
