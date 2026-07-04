@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getUser, clearSession, type AuthUser } from '@/lib/api';
 import CurrencySelector from '@/components/CurrencySelector';
+import NotificationBell from '@/components/NotificationBell';
 
 const NAV: { href: string; label: string; roles: AuthUser['role'][] }[] = [
   { href: '/dashboard', label: 'Tableau de bord', roles: ['ADMIN', 'REDACTEUR', 'JRI', 'COMPTABLE'] },
@@ -57,6 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-14 bg-white border-b flex items-center justify-end px-6 gap-4">
           <CurrencySelector />
+          <NotificationBell />
         </header>
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
