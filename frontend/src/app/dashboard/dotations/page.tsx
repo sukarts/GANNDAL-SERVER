@@ -22,9 +22,21 @@ export default function DotationsPage() {
   const [form, setForm] = useState({ materielId: '', jriId: '', etatRemise: 'BON_ETAT', observations: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [photos, setPhotos] = useState<FileList | null>(null);
   const [restit, setRestit] = useState<Dotation | null>(null);
   const [rForm, setRForm] = useState({ etatRetour: 'BON_ETAT', observationsRetour: '' });
+  const [photosRetour, setPhotosRetour] = useState<FileList | null>(null);
   const sigRef = useRef<SignatureHandle>(null);
+
+  async function uploadPhotos(dotationId: string, files: FileList | null, kind: string) {
+    if (!files) return;
+    for (const f of Array.from(files)) {
+      const fd = new FormData();
+      fd.append('fichier', f);
+      fd.append('kind', kind);
+      await apiUpload(`/dotations/${dotationId}/fichier`, fd).catch(() => {});
+    }
+  }
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
@@ -37,7 +49,8 @@ export default function DotationsPage() {
         method: 'POST',
         body: JSON.stringify({ etatRetour: rForm.etatRetour, observationsRetour: rForm.observationsRetour || undefined }),
       });
-      setRestit(null); load();
+      await uploadPhotos(restit.id, photosRetour, 'photoRetour');
+      setRestit(null); setPhotosRetour(null); load();
     } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
   }
 
@@ -73,7 +86,8 @@ export default function DotationsPage() {
           await apiUpload(`/dotations/${dotation.id}/fichier`, fd);
         }
       }
-      setOpen(false); load();
+      await uploadPhotos(dotation.id, photos, 'photo');
+      setOpen(false); setPhotos(null); load();
     } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
   }
 
@@ -127,6 +141,9 @@ export default function DotationsPage() {
             </select>
           </label>
           <textarea className={INPUT} rows={2} placeholder="Observations" value={form.observations} onChange={(e) => setForm({ ...form, observations: e.target.value })} />
+          <label className="text-sm block text-gray-600">Photos du matériel
+            <input type="file" accept="image/*" multiple onChange={(e) => setPhotos(e.target.files)} className="block text-sm mt-1" />
+          </label>
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm text-gray-600">Signature du JRI</label>
@@ -151,6 +168,9 @@ export default function DotationsPage() {
             </select>
           </label>
           <textarea className={INPUT} rows={2} placeholder="Observations retour" value={rForm.observationsRetour} onChange={(e) => setRForm({ ...rForm, observationsRetour: e.target.value })} />
+          <label className="text-sm block text-gray-600">Photos au retour
+            <input type="file" accept="image/*" multiple onChange={(e) => setPhotosRetour(e.target.files)} className="block text-sm mt-1" />
+          </label>
           <p className="text-xs text-gray-400">Dégradation calculée automatiquement selon l’état (% du coût d’acquisition).</p>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Enregistrement…' : 'Valider la restitution'}

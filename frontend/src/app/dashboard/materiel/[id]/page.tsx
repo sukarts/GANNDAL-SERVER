@@ -6,7 +6,11 @@ import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
 
-interface Dotation { id: string; dateRemise: string; statut: string; etatRemise: string; jri: { nom: string; prenom: string } }
+interface Dotation {
+  id: string; dateRemise: string; statut: string; etatRemise: string;
+  photosRemise: string[]; photosRetour: string[]; signatureUrl: string | null;
+  jri: { nom: string; prenom: string };
+}
 interface Maintenance { id: string; datePanne: string; description: string; prestataire: string | null; cout: string; dateRemiseEnService: string | null }
 interface Incident { id: string; type: string; description: string; createdAt: string }
 interface Materiel {
@@ -118,7 +122,15 @@ export default function MaterielDetailPage() {
       <Section title="Historique des dotations">
         {m.dotations.length === 0 ? <Empty /> : m.dotations.map((d) => (
           <div key={d.id} className="border-b last:border-0 py-2 text-sm">
-            {new Date(d.dateRemise).toLocaleDateString('fr-FR')} — {d.jri.prenom} {d.jri.nom} · {d.etatRemise} · <b>{d.statut}</b>
+            <div>{new Date(d.dateRemise).toLocaleDateString('fr-FR')} — {d.jri.prenom} {d.jri.nom} · {d.etatRemise} · <b>{d.statut}</b></div>
+            {[...(d.photosRemise ?? []), ...(d.photosRetour ?? []), ...(d.signatureUrl ? [d.signatureUrl] : [])].length > 0 && (
+              <div className="flex gap-2 mt-1 flex-wrap">
+                {[...(d.photosRemise ?? []), ...(d.photosRetour ?? [])].map((url) => (
+                  <a key={url} href={url} target="_blank"><img src={url} alt="" className="w-12 h-12 object-cover rounded border" /></a>
+                ))}
+                {d.signatureUrl && <a href={d.signatureUrl} target="_blank" className="text-xs underline text-gray-500 self-center">signature</a>}
+              </div>
+            )}
           </div>
         ))}
       </Section>
