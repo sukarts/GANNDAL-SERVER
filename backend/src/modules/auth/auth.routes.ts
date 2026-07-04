@@ -65,6 +65,32 @@ authRouter.post(
   }),
 );
 
+const changePwdSchema = z.object({
+  ancienMotDePasse: z.string().min(1),
+  nouveauMotDePasse: z.string().min(6),
+});
+
+authRouter.post(
+  '/change-password',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const { ancienMotDePasse, nouveauMotDePasse } = changePwdSchema.parse(req.body);
+    const user = await prisma.user.findUnique({ where: { id: req.user!.sub } });
+    if (!user) throw unauthorized();
+    const ok = await bcrypt.compare(ancienMotDePasse, user.passwordHash);
+    if (!ok) throw badRequest('Ancien mot de passe incorrect');
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: await bcrypt.hash(nouveauMotDePasse, 10) },
+    });
+    // Révoque toutes les sessions existantes (refresh tokens)
+    await prisma.refreshToken.updateMany({ where: { userId: user.id }, data: { revoked: true } });
+    await audit({ userId: user.id, action: 'CHANGE_PASSWORD', entite: 'User', entiteId: user.id, ip: req.ip });
+    res.json({ ok: true });
+  }),
+);
+
 authRouter.get(
   '/me',
   authenticate,

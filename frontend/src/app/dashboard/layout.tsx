@@ -48,7 +48,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 border-t border-white/20 text-sm">
           <div className="font-medium">{user.prenom} {user.nom}</div>
           <div className="text-white/60 text-xs mb-2">{user.role}</div>
-          <button onClick={logout} className="text-xs underline">Déconnexion</button>
+          <div className="flex gap-3">
+            <Link href="/dashboard/compte" className="text-xs underline">Mon compte</Link>
+            <button onClick={logout} className="text-xs underline">Déconnexion</button>
+          </div>
         </div>
       </aside>
       <div className="flex-1 flex flex-col overflow-hidden">
