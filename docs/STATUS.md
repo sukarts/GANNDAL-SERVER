@@ -18,7 +18,7 @@
 - Déploiement : Docker Compose (dev + prod), Dockerfiles, Nginx, systemd, sauvegarde
 
 ## 🟡 À compléter / brancher
-- **Tests automatisés** : à ajouter (Vitest + supertest)
+- **Tests** : Vitest en place (logique pure calc — 9 tests) ; ajouter supertest (endpoints) + tests d'intégration DB
 - **Pagination/filtre UI** : l'API pagine l'audit ; généraliser aux autres listes
 - **Tests automatisés** : non inclus (ajouter Vitest/Jest + supertest)
 

@@ -7,7 +7,8 @@ import { upload } from '../../middleware/upload.js';
 import { uploadObject } from '../../lib/s3.js';
 import { audit } from '../../lib/audit.js';
 import { notify } from '../../lib/notify.js';
-import { Prisma, type EtatMateriel } from '@prisma/client';
+import { montantDegradation } from '../../lib/calc.js';
+import { Prisma } from '@prisma/client';
 
 export const dotationsRouter = Router();
 dotationsRouter.use(authenticate);
@@ -103,11 +104,6 @@ const restitutionSchema = z.object({
   montantDegradation: z.number().nonnegative().optional(),
 });
 
-// Barème automatique de dégradation (% du coût d'acquisition)
-const BAREME: Record<EtatMateriel, number> = {
-  NEUF: 0, BON_ETAT: 0, A_REPARER: 0.25, HORS_SERVICE: 0.6, PERDU: 1, VOLE: 1,
-};
-
 dotationsRouter.post(
   '/:id/restitution',
   requireRole('ADMIN', 'REDACTEUR'),
@@ -117,10 +113,9 @@ dotationsRouter.post(
     if (!dotation) throw notFound();
     if (dotation.statut === 'RESTITUE') throw badRequest('Déjà restitué');
 
-    // Dégradation auto si non fournie: dégradation = max(0, baremeRetour - baremeRemise) × coût
+    // Dégradation auto si non fournie (barème par état × coût d'acquisition)
     const cout = Number(dotation.materiel.coutAcquisition);
-    const delta = Math.max(0, BAREME[data.etatRetour] - BAREME[dotation.etatRemise]);
-    const montantDegradation = data.montantDegradation ?? Math.round(delta * cout);
+    const degradation = data.montantDegradation ?? montantDegradation(dotation.etatRemise, data.etatRetour, cout);
 
     const nouveauStatutMateriel =
       data.etatRetour === 'PERDU' ? 'PERDU' : data.etatRetour === 'VOLE' ? 'VOLE'
@@ -136,13 +131,13 @@ dotationsRouter.post(
           etatRetour: data.etatRetour,
           photosRetour: data.photosRetour ?? [],
           observationsRetour: data.observationsRetour,
-          montantDegradation,
+          montantDegradation: degradation,
           validateurId: req.user!.sub,
         },
       }),
       prisma.materiel.update({ where: { id: dotation.materielId }, data: { statut: nouveauStatutMateriel, etat: data.etatRetour } }),
     ]);
-    await audit({ userId: req.user!.sub, action: 'RESTITUTION', entite: 'Dotation', entiteId: dotation.id, details: { montantDegradation }, ip: req.ip });
+    await audit({ userId: req.user!.sub, action: 'RESTITUTION', entite: 'Dotation', entiteId: dotation.id, details: { montantDegradation: degradation }, ip: req.ip });
     res.json(updated);
   }),
 );

@@ -9,6 +9,7 @@ import { uploadObject } from '../../lib/s3.js';
 import { genererFichePaiementPdf } from '../../lib/pdf.js';
 import { genererPaieExcel } from '../../lib/excel.js';
 import { getDevise } from '../../lib/currency.js';
+import { calculerPige } from '../../lib/calc.js';
 import { Prisma } from '@prisma/client';
 
 export const paiementsRouter = Router();
@@ -43,10 +44,8 @@ paiementsRouter.post(
     const totalMinutes = sujets.reduce((s, x) => s + x.dureeMinutes, 0);
     const tarifSujet = Number(profile.tarifParSujet);
     const tarifMinute = Number(profile.tarifParMinute);
-    const montantSujets = nbSujets * tarifSujet;
-    const montantMinutes = totalMinutes * tarifMinute;
-    const montantBase = montantSujets + montantMinutes;
-    const montantTotal = montantBase + bonus - penalites;
+    const { montantSujets, montantMinutes, montantBase, montantTotal } =
+      calculerPige({ nbSujets, totalMinutes, tarifSujet, tarifMinute, bonus, penalites });
 
     const reference = `PIGE-${annee}-${String(mois).padStart(2, '0')}-${jriId.slice(-4)}`;
 

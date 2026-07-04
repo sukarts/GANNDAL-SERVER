@@ -15,7 +15,8 @@ npx prisma migrate deploy && npx tsx prisma/seed.ts
 cd frontend && npm install && npm run build      # next build
 ```
 
-Test : aucune suite automatisée pour l'instant (à ajouter : Vitest + supertest).
+Test : `cd backend && npm test` (Vitest — logique métier pure : calc pige/dégradation).
+À étendre : supertest pour les endpoints.
 
 ## Deploy Configuration
 
