@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
+import PieParcMateriel from '@/components/PieParcMateriel';
 
 interface Inventaire {
   total: number; disponible: number; affecte: number;
@@ -79,6 +80,12 @@ export default function MaterielPage() {
           <Stat label="Maintenance" value={inv.maintenance} />
           <Stat label="Perdu/Volé" value={inv.perdu + inv.vole} />
           <Stat label="Valeur parc" value={formatMoney(inv.valeurParc)} />
+        </div>
+      )}
+      {inv && inv.total > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6 max-w-md">
+          <h2 className="font-semibold text-sm mb-1">Répartition du parc</h2>
+          <PieParcMateriel inv={inv} />
         </div>
       )}
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">

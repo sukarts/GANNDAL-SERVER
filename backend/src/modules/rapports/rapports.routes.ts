@@ -60,6 +60,27 @@ rapportsRouter.get(
   }),
 );
 
+// Évolution mensuelle des piges (montant total + nb de fiches) sur une année
+rapportsRouter.get(
+  '/evolution-piges',
+  asyncHandler(async (req, res) => {
+    const annee = Number(req.query.annee) || new Date().getFullYear();
+    const fiches = await prisma.fichePaiement.findMany({
+      where: { annee },
+      select: { mois: true, montantTotal: true },
+    });
+    const parMois = Array.from({ length: 12 }, (_, i) => ({ mois: i + 1, montant: 0, fiches: 0 }));
+    for (const f of fiches) {
+      const idx = f.mois - 1;
+      if (idx >= 0 && idx < 12) {
+        parMois[idx].montant += Number(f.montantTotal);
+        parMois[idx].fiches += 1;
+      }
+    }
+    res.json({ annee, parMois });
+  }),
+);
+
 // Rapport inventaire / parc matériel
 rapportsRouter.get(
   '/inventaire',

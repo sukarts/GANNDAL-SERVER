@@ -1,20 +1,29 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { api } from '@/lib/api';
+import { formatMoney } from '@/lib/money';
 
 interface Activite { periode: string; crees: number; livres: number; valides: number; rejetes: number }
 interface Classement { jriId: string; nom: string; sujets: number; minutes: number }
+interface Evolution { annee: number; parMois: { mois: number; montant: number; fiches: number }[] }
+
+const MOIS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 export default function RapportsPage() {
   const [periode, setPeriode] = useState('mois');
   const [act, setAct] = useState<Activite | null>(null);
   const [classement, setClassement] = useState<Classement[]>([]);
+  const [evo, setEvo] = useState<Evolution | null>(null);
 
   useEffect(() => {
     api<Activite>(`/rapports/activite?periode=${periode}`).then(setAct).catch(() => {});
     api<Classement[]>(`/rapports/classement-jri?periode=${periode}`).then(setClassement).catch(() => {});
   }, [periode]);
+
+  useEffect(() => {
+    api<Evolution>('/rapports/evolution-piges').then(setEvo).catch(() => {});
+  }, []);
 
   return (
     <div>
@@ -36,6 +45,25 @@ export default function RapportsPage() {
           <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Livrés</div><div className="text-2xl font-bold">{act.livres}</div></div>
           <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Validés</div><div className="text-2xl font-bold">{act.valides}</div></div>
           <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Rejetés</div><div className="text-2xl font-bold">{act.rejetes}</div></div>
+        </div>
+      )}
+
+      {evo && evo.parMois.some((m) => m.montant > 0) && (
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <h2 className="font-semibold text-sm mb-3">Évolution des piges — {evo.annee}</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={evo.parMois.map((m) => ({ ...m, label: MOIS[m.mois - 1] }))} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} width={70}
+                tickFormatter={(v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(0)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(0)}k` : String(v))} />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                formatter={(v: number) => [formatMoney(v), 'Montant']}
+              />
+              <Line type="monotone" dataKey="montant" stroke="#1a7f37" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
 
