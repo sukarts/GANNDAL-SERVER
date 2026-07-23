@@ -35,6 +35,22 @@ export function updateStoredUser(patch: Partial<AuthUser>): void {
   if (u) localStorage.setItem('ganndal_user', JSON.stringify({ ...u, ...patch }));
 }
 
+// Liste paginée : renvoie les éléments + le total (header X-Total-Count)
+export async function apiPaged<T = unknown>(path: string, page: number, limit = 25): Promise<{ items: T[]; total: number }> {
+  const token = getToken();
+  const sep = path.includes('?') ? '&' : '?';
+  const res = await fetch(`${API}${path}${sep}page=${page}&limit=${limit}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Erreur ${res.status}`);
+  }
+  const items = (await res.json()) as T[];
+  const total = Number(res.headers.get('X-Total-Count') ?? items.length);
+  return { items, total };
+}
+
 // Upload multipart (fichiers) — ne pas fixer Content-Type (boundary auto)
 export async function apiUpload<T = unknown>(path: string, formData: FormData): Promise<T> {
   const token = getToken();

@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api, getUser } from '@/lib/api';
+import { api, apiPaged, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
+import Pagination from '@/components/Pagination';
 
 interface Sujet {
   id: string;
@@ -24,9 +25,12 @@ const STATUT_COLOR: Record<string, string> = {
 };
 
 const INPUT = 'w-full border rounded px-3 py-2 text-sm';
+const LIMIT = 25;
 
 export default function SujetsPage() {
   const [sujets, setSujets] = useState<Sujet[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const [jris, setJris] = useState<Jri[]>([]);
@@ -36,9 +40,11 @@ export default function SujetsPage() {
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
   function load() {
-    api<Sujet[]>('/sujets').then(setSujets).catch((e) => setError((e as Error).message));
+    apiPaged<Sujet>('/sujets', page, LIMIT)
+      .then((r) => { setSujets(r.items); setTotal(r.total); })
+      .catch((e) => setError((e as Error).message));
   }
-  useEffect(load, []);
+  useEffect(load, [page]);
 
   function openForm() {
     setError('');
@@ -107,6 +113,7 @@ export default function SujetsPage() {
             {sujets.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>Aucun sujet</td></tr>}
           </tbody>
         </table>
+        <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
 
       <Modal open={open} title="Nouveau sujet" onClose={() => setOpen(false)}>

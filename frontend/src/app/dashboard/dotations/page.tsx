@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { api, apiUpload, getUser } from '@/lib/api';
+import { api, apiPaged, apiUpload, getUser } from '@/lib/api';
+import Pagination from '@/components/Pagination';
 import Modal from '@/components/Modal';
 import SignaturePad, { type SignatureHandle } from '@/components/SignaturePad';
 
@@ -13,9 +14,12 @@ interface Materiel { id: string; reference: string; statut: string }
 interface Jri { id: string; nom: string; prenom: string }
 
 const INPUT = 'w-full border rounded px-3 py-2 text-sm';
+const LIMIT = 25;
 
 export default function DotationsPage() {
   const [list, setList] = useState<Dotation[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [materiels, setMateriels] = useState<Materiel[]>([]);
   const [jris, setJris] = useState<Jri[]>([]);
   const [open, setOpen] = useState(false);
@@ -54,8 +58,12 @@ export default function DotationsPage() {
     } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
   }
 
-  function load() { api<Dotation[]>('/dotations').then(setList).catch(() => {}); }
-  useEffect(load, []);
+  function load() {
+    apiPaged<Dotation>('/dotations', page, LIMIT)
+      .then((r) => { setList(r.items); setTotal(r.total); })
+      .catch(() => {});
+  }
+  useEffect(load, [page]);
 
   function openForm() {
     setForm({ materielId: '', jriId: '', etatRemise: 'BON_ETAT', observations: '' });
@@ -121,6 +129,7 @@ export default function DotationsPage() {
             {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={7}>Aucune dotation</td></tr>}
           </tbody>
         </table>
+        <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
 
       <Modal open={open} title="Nouvelle dotation" onClose={() => setOpen(false)}>

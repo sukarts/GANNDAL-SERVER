@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api, apiDownload, getUser } from '@/lib/api';
+import { api, apiDownload, apiPaged, getUser } from '@/lib/api';
+import Pagination from '@/components/Pagination';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
 
@@ -12,10 +13,13 @@ interface Fiche {
 interface Jri { id: string; nom: string; prenom: string }
 
 const INPUT = 'w-full border rounded px-3 py-2 text-sm';
+const LIMIT = 25;
 const now = new Date();
 
 export default function PaiementsPage() {
   const [list, setList] = useState<Fiche[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [jris, setJris] = useState<Jri[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ jriId: '', annee: String(now.getFullYear()), mois: String(now.getMonth() + 1), bonus: '', penalites: '' });
@@ -31,8 +35,12 @@ export default function PaiementsPage() {
     } catch (e) { alert((e as Error).message); }
   }
 
-  function load() { api<Fiche[]>('/paiements').then(setList).catch(() => {}); }
-  useEffect(load, []);
+  function load() {
+    apiPaged<Fiche>('/paiements', page, LIMIT)
+      .then((r) => { setList(r.items); setTotal(r.total); })
+      .catch(() => {});
+  }
+  useEffect(load, [page]);
 
   function openForm() {
     setError('');
@@ -107,6 +115,7 @@ export default function PaiementsPage() {
             {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={8}>Aucune fiche</td></tr>}
           </tbody>
         </table>
+        <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
 
       <Modal open={open} title="Calculer une pige" onClose={() => setOpen(false)}>

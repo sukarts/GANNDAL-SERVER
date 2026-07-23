@@ -9,7 +9,8 @@ import { errorHandler } from './middleware/error.js';
 export function createApp() {
   const app = express();
   app.use(helmet());
-  app.use(cors({ origin: env.corsOrigin, credentials: true }));
+  // X-Total-Count exposé pour la pagination côté client
+  app.use(cors({ origin: env.corsOrigin, credentials: true, exposedHeaders: ['X-Total-Count'] }));
   app.use(express.json({ limit: '2mb' }));
   app.use(express.urlencoded({ extended: true }));
   if (env.nodeEnv !== 'test') app.use(morgan('dev'));

@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api, getUser } from '@/lib/api';
+import { api, apiPaged, getUser } from '@/lib/api';
+import Pagination from '@/components/Pagination';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
 import PieParcMateriel from '@/components/PieParcMateriel';
@@ -17,6 +18,7 @@ interface Materiel {
 interface Categorie { id: string; nom: string }
 
 const INPUT = 'w-full border rounded px-3 py-2 text-sm';
+const LIMIT = 25;
 const empty = { reference: '', numInventaire: '', categorieId: '', marque: '', modele: '', numSerie: '', dateAchat: '', fournisseur: '', coutAcquisition: '', garantieFin: '', etat: 'NEUF' };
 
 function Stat({ label, value }: { label: string; value: string | number }) {
@@ -31,6 +33,8 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 export default function MaterielPage() {
   const [inv, setInv] = useState<Inventaire | null>(null);
   const [list, setList] = useState<Materiel[]>([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [cats, setCats] = useState<Categorie[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
@@ -41,10 +45,12 @@ export default function MaterielPage() {
 
   function load() {
     api<Inventaire>('/materiel/inventaire').then(setInv).catch(() => {});
-    api<Materiel[]>('/materiel').then(setList).catch(() => {});
+    apiPaged<Materiel>('/materiel', page, LIMIT)
+      .then((r) => { setList(r.items); setTotal(r.total); })
+      .catch(() => {});
   }
+  useEffect(load, [page]);
   useEffect(() => {
-    load();
     api<Categorie[]>('/materiel/categories').then(setCats).catch(() => {});
   }, []);
 
@@ -113,6 +119,7 @@ export default function MaterielPage() {
             {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>Aucun équipement</td></tr>}
           </tbody>
         </table>
+        <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
 
       <Modal open={open} title="Nouvel équipement" onClose={() => setOpen(false)}>

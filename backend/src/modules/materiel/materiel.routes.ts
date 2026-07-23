@@ -4,6 +4,7 @@ import { prisma } from '../../lib/prisma.js';
 import { asyncHandler, notFound } from '../../lib/http.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 import { audit } from '../../lib/audit.js';
+import { pageParams, setTotal } from '../../lib/pagination.js';
 import { genererQrMateriel } from '../../lib/qrcode.js';
 import { env } from '../../config/env.js';
 import { Prisma } from '@prisma/client';
@@ -73,11 +74,12 @@ materielRouter.get(
     const where: Prisma.MaterielWhereInput = {};
     if (req.query.statut) where.statut = req.query.statut as Prisma.MaterielWhereInput['statut'];
     if (req.query.categorieId) where.categorieId = req.query.categorieId as string;
-    const materiels = await prisma.materiel.findMany({
-      where,
-      include: { categorie: true },
-      orderBy: { reference: 'asc' },
-    });
+    const { skip, take } = pageParams(req);
+    const [total, materiels] = await Promise.all([
+      prisma.materiel.count({ where }),
+      prisma.materiel.findMany({ where, include: { categorie: true }, orderBy: { reference: 'asc' }, skip, take }),
+    ]);
+    setTotal(res, total);
     res.json(materiels);
   }),
 );

@@ -6,6 +6,7 @@ import { authenticate, requireRole } from '../../middleware/auth.js';
 import { upload } from '../../middleware/upload.js';
 import { uploadObject } from '../../lib/s3.js';
 import { audit } from '../../lib/audit.js';
+import { pageParams, setTotal } from '../../lib/pagination.js';
 import { notify } from '../../lib/notify.js';
 import { montantDegradation } from '../../lib/calc.js';
 import { Prisma } from '@prisma/client';
@@ -23,11 +24,18 @@ dotationsRouter.get(
     if (req.user!.role === 'JRI') where.jriId = req.user!.sub;
     else if (req.query.jriId) where.jriId = req.query.jriId as string;
     if (req.query.statut) where.statut = req.query.statut as Prisma.DotationWhereInput['statut'];
-    const dotations = await prisma.dotation.findMany({
-      where,
-      include: { materiel: { include: { categorie: true } }, jri: { select: { nom: true, prenom: true } } },
-      orderBy: { dateRemise: 'desc' },
-    });
+    const { skip, take } = pageParams(req);
+    const [total, dotations] = await Promise.all([
+      prisma.dotation.count({ where }),
+      prisma.dotation.findMany({
+        where,
+        include: { materiel: { include: { categorie: true } }, jri: { select: { nom: true, prenom: true } } },
+        orderBy: { dateRemise: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+    setTotal(res, total);
     res.json(dotations);
   }),
 );

@@ -4,6 +4,7 @@ import { prisma } from '../../lib/prisma.js';
 import { asyncHandler, notFound, badRequest } from '../../lib/http.js';
 import { authenticate, requireRole } from '../../middleware/auth.js';
 import { audit } from '../../lib/audit.js';
+import { pageParams, setTotal } from '../../lib/pagination.js';
 import { notify } from '../../lib/notify.js';
 import { uploadObject } from '../../lib/s3.js';
 import { genererFichePaiementPdf } from '../../lib/pdf.js';
@@ -89,11 +90,18 @@ paiementsRouter.get(
     if (req.query.annee) where.annee = Number(req.query.annee);
     if (req.query.mois) where.mois = Number(req.query.mois);
 
-    const fiches = await prisma.fichePaiement.findMany({
-      where,
-      include: { jri: { select: { nom: true, prenom: true } } },
-      orderBy: [{ annee: 'desc' }, { mois: 'desc' }],
-    });
+    const { skip, take } = pageParams(req);
+    const [total, fiches] = await Promise.all([
+      prisma.fichePaiement.count({ where }),
+      prisma.fichePaiement.findMany({
+        where,
+        include: { jri: { select: { nom: true, prenom: true } } },
+        orderBy: [{ annee: 'desc' }, { mois: 'desc' }],
+        skip,
+        take,
+      }),
+    ]);
+    setTotal(res, total);
     res.json(fiches);
   }),
 );

@@ -8,6 +8,7 @@ import { uploadObject } from '../../lib/s3.js';
 import { audit } from '../../lib/audit.js';
 import { notify } from '../../lib/notify.js';
 import { nextRef } from '../../lib/ref.js';
+import { pageParams, setTotal } from '../../lib/pagination.js';
 import { Prisma, type TypeElement } from '@prisma/client';
 
 export const sujetsRouter = Router();
@@ -32,11 +33,18 @@ sujetsRouter.get(
     if (req.user!.role === 'JRI') where.jriId = req.user!.sub;
     else if (jriId) where.jriId = jriId;
 
-    const sujets = await prisma.sujet.findMany({
-      where,
-      include: { jri: { select: { id: true, nom: true, prenom: true } }, _count: { select: { elements: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
+    const { skip, take } = pageParams(req);
+    const [total, sujets] = await Promise.all([
+      prisma.sujet.count({ where }),
+      prisma.sujet.findMany({
+        where,
+        include: { jri: { select: { id: true, nom: true, prenom: true } }, _count: { select: { elements: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+    ]);
+    setTotal(res, total);
     res.json(sujets);
   }),
 );
