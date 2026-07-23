@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { api } from '@/lib/api';
 
 interface Activite { periode: string; crees: number; livres: number; valides: number; rejetes: number }
@@ -38,7 +39,20 @@ export default function RapportsPage() {
         </div>
       )}
 
-      <h2 className="font-semibold mb-2">Classement des JRI</h2>
+      <h2 className="font-semibold mb-2">Classement des JRI (sujets validés)</h2>
+      {classement.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+          <ResponsiveContainer width="100%" height={Math.max(120, classement.slice(0, 8).length * 36)}>
+            <BarChart data={classement.slice(0, 8)} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="nom" width={120} tick={{ fontSize: 12, fill: '#374151' }} axisLine={false} tickLine={false} />
+              <Tooltip cursor={{ fill: 'rgba(26,127,55,0.06)' }} contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }} />
+              <Bar dataKey="sujets" fill="#1a7f37" radius={[0, 4, 4, 0]} maxBarSize={22} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">#</th><th className="p-3">JRI</th><th className="p-3">Sujets</th><th className="p-3">Minutes</th></tr></thead>

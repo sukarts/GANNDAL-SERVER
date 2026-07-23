@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
+import BarChartMois from '@/components/BarChartMois';
 
 interface AdminStats {
   nbJri: number;
@@ -60,15 +61,8 @@ export default function DashboardPage() {
 
       {!isJri && (
         <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
-          <h2 className="font-semibold mb-3">Statistiques mensuelles (sujets validés)</h2>
-          <div className="flex items-end gap-2 h-40">
-            {stats.statistiquesMensuelles.map((m) => (
-              <div key={m.mois} className="flex-1 flex flex-col items-center justify-end">
-                <div className="w-full bg-brand rounded-t" style={{ height: `${Math.min(100, m.sujets * 10)}%` }} />
-                <span className="text-xs text-gray-400 mt-1">{m.mois}</span>
-              </div>
-            ))}
-          </div>
+          <h2 className="font-semibold mb-3">Sujets validés par mois</h2>
+          <BarChartMois data={stats.statistiquesMensuelles} />
         </div>
       )}
     </div>
