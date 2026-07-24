@@ -17,6 +17,7 @@ sujetsRouter.use(authenticate);
 const createSchema = z.object({
   titre: z.string().min(1),
   description: z.string().optional(),
+  rubrique: z.string().optional(),
   jriId: z.string().optional(),
   dateLimite: z.coerce.date().optional(),
   priorite: z.enum(['BASSE', 'NORMALE', 'HAUTE', 'URGENTE']).optional(),
@@ -78,6 +79,7 @@ sujetsRouter.post(
         reference: await nextRef('SUJ', 'sujet'),
         titre: data.titre,
         description: data.description,
+        rubrique: data.rubrique,
         jriId: data.jriId,
         createdById: req.user!.sub,
         dateLimite: data.dateLimite,
@@ -113,15 +115,20 @@ sujetsRouter.patch(
   }),
 );
 
-// Changement de statut par le JRI (EN_COURS / LIVRE)
-const statutSchema = z.object({ statut: z.enum(['EN_COURS', 'LIVRE']) });
+// Changement de statut. JRI : EN_COURS/LIVRE sur ses sujets.
+// ADMIN/REDACTEUR : peut aussi replacer en ASSIGNE (déplacement kanban).
+// VALIDE/REJETE passent par l'endpoint /validation (trace + commentaire).
+const statutSchema = z.object({ statut: z.enum(['ASSIGNE', 'EN_COURS', 'LIVRE']) });
 sujetsRouter.patch(
   '/:id/statut',
   asyncHandler(async (req, res) => {
     const { statut } = statutSchema.parse(req.body);
     const sujet = await prisma.sujet.findUnique({ where: { id: req.params.id } });
     if (!sujet) throw notFound();
-    if (req.user!.role === 'JRI' && sujet.jriId !== req.user!.sub) throw forbidden();
+    if (req.user!.role === 'JRI') {
+      if (sujet.jriId !== req.user!.sub) throw forbidden();
+      if (statut === 'ASSIGNE') throw forbidden('Réservé au rédacteur');
+    }
 
     const updated = await prisma.sujet.update({
       where: { id: sujet.id },

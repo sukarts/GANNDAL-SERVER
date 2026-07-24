@@ -35,7 +35,7 @@ export default function SujetsPage() {
   const [open, setOpen] = useState(false);
   const [jris, setJris] = useState<Jri[]>([]);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ titre: '', description: '', jriId: '', dateLimite: '', priorite: 'NORMALE', dureeMinutes: '' });
+  const [form, setForm] = useState({ titre: '', description: '', rubrique: '', jriId: '', dateLimite: '', priorite: 'NORMALE', dureeMinutes: '' });
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
@@ -48,7 +48,7 @@ export default function SujetsPage() {
 
   function openForm() {
     setError('');
-    setForm({ titre: '', description: '', jriId: '', dateLimite: '', priorite: 'NORMALE', dureeMinutes: '' });
+    setForm({ titre: '', description: '', rubrique: '', jriId: '', dateLimite: '', priorite: 'NORMALE', dureeMinutes: '' });
     api<Jri[]>('/users?role=JRI').then(setJris).catch(() => {});
     setOpen(true);
   }
@@ -63,6 +63,7 @@ export default function SujetsPage() {
         body: JSON.stringify({
           titre: form.titre,
           description: form.description || undefined,
+          rubrique: form.rubrique || undefined,
           jriId: form.jriId || undefined,
           dateLimite: form.dateLimite || undefined,
           priorite: form.priorite,
@@ -121,6 +122,7 @@ export default function SujetsPage() {
           {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
           <input required className={INPUT} placeholder="Titre" value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} />
           <textarea className={INPUT} placeholder="Description" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+          <input className={INPUT} placeholder="Rubrique (Politique, Sport, Éco…)" value={form.rubrique} onChange={(e) => setForm({ ...form, rubrique: e.target.value })} />
           <select className={INPUT} value={form.jriId} onChange={(e) => setForm({ ...form, jriId: e.target.value })}>
             <option value="">— Attribuer à un JRI (optionnel) —</option>
             {jris.map((j) => <option key={j.id} value={j.id}>{j.prenom} {j.nom}</option>)}

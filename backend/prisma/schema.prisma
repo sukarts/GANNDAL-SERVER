@@ -108,6 +108,7 @@ model Sujet {
   reference    String      @unique // ex: SUJ-2026-0001
   titre        String
   description  String?
+  rubrique     String?     // desk éditorial : Politique, Sport, Économie…
   jriId        String?
   jri          User?       @relation("SujetJri", fields: [jriId], references: [id])
   createdById  String
