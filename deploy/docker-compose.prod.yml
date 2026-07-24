@@ -42,8 +42,10 @@ services:
     env_file: .env
     depends_on: [postgres, minio]
     networks: [ganndal]
-    # Applique le schéma (db push, pas de migrations) puis démarre
-    command: sh -c "npx prisma db push --skip-generate && node dist/server.js"
+    # Applique le schéma (db push, pas de migrations) puis démarre.
+    # --accept-data-loss : autorise les changements additifs (ex: nouvel index
+    # unique sur colonne nullable) sans blocage. Pas de migrations destructives ici.
+    command: sh -c "npx prisma db push --skip-generate --accept-data-loss && node dist/server.js"
 
   frontend:
     build:
