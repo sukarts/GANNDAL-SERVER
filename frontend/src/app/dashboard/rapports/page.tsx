@@ -7,6 +7,7 @@ import { formatMoney } from '@/lib/money';
 interface Activite { periode: string; crees: number; livres: number; valides: number; rejetes: number }
 interface Classement { jriId: string; nom: string; sujets: number; minutes: number }
 interface Evolution { annee: number; parMois: { mois: number; montant: number; fiches: number }[] }
+interface Sla { enRetard: number; respectParJri: { jriId: string; nom: string; aTemps: number; enRetard: number; total: number; taux: number }[] }
 
 const MOIS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
@@ -15,6 +16,7 @@ export default function RapportsPage() {
   const [act, setAct] = useState<Activite | null>(null);
   const [classement, setClassement] = useState<Classement[]>([]);
   const [evo, setEvo] = useState<Evolution | null>(null);
+  const [sla, setSla] = useState<Sla | null>(null);
 
   useEffect(() => {
     api<Activite>(`/rapports/activite?periode=${periode}`).then(setAct).catch(() => {});
@@ -23,6 +25,7 @@ export default function RapportsPage() {
 
   useEffect(() => {
     api<Evolution>('/rapports/evolution-piges').then(setEvo).catch(() => {});
+    api<Sla>('/rapports/sla').then(setSla).catch(() => {});
   }, []);
 
   return (
@@ -45,6 +48,34 @@ export default function RapportsPage() {
           <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Livrés</div><div className="text-2xl font-bold">{act.livres}</div></div>
           <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Validés</div><div className="text-2xl font-bold">{act.valides}</div></div>
           <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Rejetés</div><div className="text-2xl font-bold">{act.rejetes}</div></div>
+        </div>
+      )}
+
+      {sla && (
+        <div className="mb-6">
+          <h2 className="font-semibold mb-2">Respect des délais (SLA)</h2>
+          <div className="bg-white rounded-xl shadow-sm p-4">
+            <div className="mb-3 text-sm">
+              Sujets <b>en retard</b> (échéance dépassée, non livrés) :{' '}
+              <span className={sla.enRetard > 0 ? 'text-red-600 font-bold text-lg' : 'text-green-700 font-bold'}>{sla.enRetard}</span>
+            </div>
+            <table className="w-full text-sm">
+              <thead className="text-left text-gray-500"><tr><th className="py-1">JRI</th><th className="py-1">À l’heure</th><th className="py-1">En retard</th><th className="py-1">Taux</th></tr></thead>
+              <tbody>
+                {sla.respectParJri.map((r) => (
+                  <tr key={r.jriId} className="border-t">
+                    <td className="py-1.5">{r.nom}</td>
+                    <td className="py-1.5">{r.aTemps}</td>
+                    <td className="py-1.5">{r.enRetard}</td>
+                    <td className="py-1.5">
+                      <span className={`font-medium ${r.taux >= 80 ? 'text-green-700' : r.taux >= 50 ? 'text-amber-600' : 'text-red-600'}`}>{r.taux}%</span>
+                    </td>
+                  </tr>
+                ))}
+                {sla.respectParJri.length === 0 && <tr><td className="py-3 text-gray-400" colSpan={4}>Pas encore de livraison mesurable.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

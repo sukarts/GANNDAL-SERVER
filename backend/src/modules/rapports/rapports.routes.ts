@@ -81,6 +81,45 @@ rapportsRouter.get(
   }),
 );
 
+// SLA : respect des délais. Retards en cours + taux de livraison à l'heure par JRI.
+rapportsRouter.get(
+  '/sla',
+  asyncHandler(async (_req, res) => {
+    const now = new Date();
+    const sujets = await prisma.sujet.findMany({
+      where: { dateLimite: { not: null } },
+      select: {
+        statut: true, dateLimite: true, livreLe: true, jriId: true,
+        jri: { select: { nom: true, prenom: true } },
+      },
+    });
+
+    // Retards en cours : échéance dépassée, pas encore livré ni validé
+    const enRetard = sujets.filter(
+      (s) => s.dateLimite! < now && ['ASSIGNE', 'EN_COURS', 'REJETE'].includes(s.statut),
+    ).length;
+
+    // Taux de livraison à l'heure par JRI (sur les sujets livrés/validés)
+    type Acc = { nom: string; aTemps: number; enRetard: number };
+    const map = new Map<string, Acc>();
+    for (const s of sujets) {
+      if (!s.jriId || !s.livreLe) continue; // seulement les livrés
+      const acc = map.get(s.jriId) ?? { nom: s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—', aTemps: 0, enRetard: 0 };
+      if (s.livreLe <= s.dateLimite!) acc.aTemps++;
+      else acc.enRetard++;
+      map.set(s.jriId, acc);
+    }
+    const respectParJri = [...map.entries()]
+      .map(([jriId, a]) => {
+        const total = a.aTemps + a.enRetard;
+        return { jriId, nom: a.nom, aTemps: a.aTemps, enRetard: a.enRetard, total, taux: total ? Math.round((a.aTemps / total) * 100) : 0 };
+      })
+      .sort((x, y) => y.taux - x.taux);
+
+    res.json({ enRetard, respectParJri });
+  }),
+);
+
 // Rapport inventaire / parc matériel
 rapportsRouter.get(
   '/inventaire',

@@ -11,6 +11,7 @@ export interface AlerteResume {
   garantie: number;
   nonRestitue: number;
   entretien: number;
+  sujetsEnRetard: number;
   total: number;
 }
 
@@ -111,13 +112,41 @@ async function alerteEntretien(dests: string[]): Promise<number> {
   return n;
 }
 
+// Sujets en retard : échéance dépassée, pas encore livrés → relance JRI + rédacteurs
+async function alerteSujetsEnRetard(dests: string[]): Promise<number> {
+  const sujets = await prisma.sujet.findMany({
+    where: {
+      dateLimite: { not: null, lt: new Date() },
+      statut: { in: ['ASSIGNE', 'EN_COURS', 'REJETE'] },
+    },
+    include: { jri: { select: { nom: true, prenom: true } } },
+  });
+  let n = 0;
+  for (const s of sujets) {
+    const message = `« ${s.titre} » (${s.reference}) — échéance ${s.dateLimite?.toLocaleDateString('fr-FR')} dépassée, statut ${s.statut}.`;
+    const lien = `/sujets/${s.id}?alerte=retard`;
+    // Le JRI concerné
+    if (s.jriId) {
+      const ok = await notifierUnique(s.jriId, 'Sujet en retard', message, lien, ['INTERNE', 'EMAIL', 'WHATSAPP']);
+      if (ok) n++;
+    }
+    // Les rédacteurs / admins
+    for (const uid of dests) {
+      const ok = await notifierUnique(uid, 'Sujet en retard', message, lien, ['INTERNE']);
+      if (ok) n++;
+    }
+  }
+  return n;
+}
+
 // Exécute toutes les alertes et retourne un résumé
 export async function runAlertes(): Promise<AlerteResume> {
   const dests = await destinataires();
-  const [garantie, nonRestitue, entretien] = await Promise.all([
+  const [garantie, nonRestitue, entretien, sujetsEnRetard] = await Promise.all([
     alerteGarantie(dests),
     alerteNonRestitue(dests),
     alerteEntretien(dests),
+    alerteSujetsEnRetard(dests),
   ]);
-  return { garantie, nonRestitue, entretien, total: garantie + nonRestitue + entretien };
+  return { garantie, nonRestitue, entretien, sujetsEnRetard, total: garantie + nonRestitue + entretien + sujetsEnRetard };
 }

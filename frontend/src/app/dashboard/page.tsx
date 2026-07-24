@@ -8,15 +8,16 @@ interface AdminStats {
   nbJri: number;
   sujetsLivres: number;
   sujetsValides: number;
+  sujetsEnRetard: number;
   montantAPayer: number;
   statistiquesMensuelles: { mois: number; sujets: number }[];
 }
 
-function Card({ label, value }: { label: string; value: string | number }) {
+function Card({ label, value, alerte }: { label: string; value: string | number; alerte?: boolean }) {
   return (
     <div className="bg-white rounded-xl p-5 shadow-sm">
       <div className="text-sm text-gray-500">{label}</div>
-      <div className="text-3xl font-bold text-brand mt-1">{value}</div>
+      <div className={`text-3xl font-bold mt-1 ${alerte ? 'text-red-600' : 'text-brand'}`}>{value}</div>
     </div>
   );
 }
@@ -40,10 +41,11 @@ export default function DashboardPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
       {!isJri ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card label="JRI actifs" value={stats.nbJri} />
           <Card label="Sujets livrés" value={stats.sujetsLivres} />
           <Card label="Sujets validés" value={stats.sujetsValides} />
+          <Card label="En retard" value={stats.sujetsEnRetard} alerte={stats.sujetsEnRetard > 0} />
           <Card label="Piges à payer" value={formatMoney(stats.montantAPayer)} />
         </div>
       ) : (

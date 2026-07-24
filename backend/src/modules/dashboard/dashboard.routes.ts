@@ -11,13 +11,16 @@ dashboardRouter.get(
   '/admin',
   requireRole('ADMIN', 'REDACTEUR', 'COMPTABLE'),
   asyncHandler(async (_req, res) => {
-    const [nbJri, livres, valides, fichesAPayer] = await Promise.all([
+    const [nbJri, livres, valides, fichesAPayer, enRetard] = await Promise.all([
       prisma.user.count({ where: { role: 'JRI', actif: true } }),
       prisma.sujet.count({ where: { statut: 'LIVRE' } }),
       prisma.sujet.count({ where: { statut: 'VALIDE' } }),
       prisma.fichePaiement.aggregate({
         where: { statut: { in: ['GENEREE', 'BROUILLON'] } },
         _sum: { montantTotal: true },
+      }),
+      prisma.sujet.count({
+        where: { dateLimite: { lt: new Date() }, statut: { in: ['ASSIGNE', 'EN_COURS', 'REJETE'] } },
       }),
     ]);
 
@@ -36,6 +39,7 @@ dashboardRouter.get(
       nbJri,
       sujetsLivres: livres,
       sujetsValides: valides,
+      sujetsEnRetard: enRetard,
       montantAPayer: Number(fichesAPayer._sum.montantTotal ?? 0),
       statistiquesMensuelles: parMois,
     });
