@@ -7,7 +7,7 @@ import { audit } from '../../lib/audit.js';
 import { pageParams, setTotal } from '../../lib/pagination.js';
 import { notify } from '../../lib/notify.js';
 import { uploadObject } from '../../lib/s3.js';
-import { genererFichePaiementPdf } from '../../lib/pdf.js';
+import { genererFichePaiementPdf, genererBordereauPdf } from '../../lib/pdf.js';
 import { genererPaieExcel } from '../../lib/excel.js';
 import { getDevise } from '../../lib/currency.js';
 import { calculerPige } from '../../lib/calc.js';
@@ -155,17 +155,47 @@ paiementsRouter.get(
   }),
 );
 
-// Marquer payée
+// Ordre de paiement (bordereau) PDF des fiches générées d'une période
+paiementsRouter.get(
+  '/bordereau',
+  requireRole('ADMIN', 'COMPTABLE'),
+  asyncHandler(async (req, res) => {
+    const annee = Number(req.query.annee) || new Date().getFullYear();
+    const mois = Number(req.query.mois) || new Date().getMonth() + 1;
+    const fiches = await prisma.fichePaiement.findMany({
+      where: { annee, mois, statut: 'GENEREE' },
+      include: { jri: { include: { jriProfile: true } } },
+      orderBy: { jri: { nom: 'asc' } },
+    });
+    const buffer = await genererBordereauPdf(fiches, annee, mois);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="bordereau-paiement-${annee}-${mois}.pdf"`);
+    res.send(buffer);
+  }),
+);
+
+// Marquer payée avec référence de paiement
+const payerSchema = z.object({
+  modePaiement: z.string().optional(),
+  referencePaiement: z.string().optional(),
+  payeeLe: z.coerce.date().optional(),
+});
 paiementsRouter.patch(
   '/:id/payer',
   requireRole('ADMIN', 'COMPTABLE'),
   asyncHandler(async (req, res) => {
+    const data = payerSchema.parse(req.body ?? {});
     const fiche = await prisma.fichePaiement.update({
       where: { id: req.params.id },
-      data: { statut: 'PAYEE', payeeLe: new Date() },
+      data: {
+        statut: 'PAYEE',
+        payeeLe: data.payeeLe ?? new Date(),
+        modePaiement: data.modePaiement,
+        referencePaiement: data.referencePaiement,
+      },
     });
-    await audit({ userId: req.user!.sub, action: 'UPDATE', entite: 'FichePaiement', entiteId: fiche.id, details: { statut: 'PAYEE' }, ip: req.ip });
-    await notify({ userId: fiche.jriId, titre: 'Pige payée', message: `Votre fiche ${fiche.reference} a été réglée.`, canaux: ['INTERNE', 'EMAIL', 'WHATSAPP'] });
+    await audit({ userId: req.user!.sub, action: 'UPDATE', entite: 'FichePaiement', entiteId: fiche.id, details: { statut: 'PAYEE', ref: data.referencePaiement }, ip: req.ip });
+    await notify({ userId: fiche.jriId, titre: 'Pige payée', message: `Votre fiche ${fiche.reference} a été réglée${data.referencePaiement ? ` (réf. ${data.referencePaiement})` : ''}.`, canaux: ['INTERNE', 'EMAIL', 'WHATSAPP'] });
     res.json(fiche);
   }),
 );

@@ -8,6 +8,7 @@ import Modal from '@/components/Modal';
 interface Fiche {
   id: string; reference: string; annee: number; mois: number;
   nbSujets: number; totalMinutes: number; montantTotal: string; statut: string;
+  referencePaiement?: string | null; modePaiement?: string | null;
   jri?: { nom: string; prenom: string };
 }
 interface Jri { id: string; nom: string; prenom: string }
@@ -26,12 +27,20 @@ export default function PaiementsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [periode, setPeriode] = useState({ annee: String(now.getFullYear()), mois: String(now.getMonth() + 1) });
+  const [payFiche, setPayFiche] = useState<Fiche | null>(null);
+  const [payForm, setPayForm] = useState({ mode: 'Virement', ref: '', date: '' });
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCalculer = user?.role === 'ADMIN' || user?.role === 'COMPTABLE';
 
   async function exportExcel() {
     try {
       await apiDownload(`/paiements/export/excel?annee=${periode.annee}&mois=${periode.mois}`, `paie-${periode.annee}-${periode.mois}.xlsx`);
+    } catch (e) { alert((e as Error).message); }
+  }
+
+  async function bordereau() {
+    try {
+      await apiDownload(`/paiements/bordereau?annee=${periode.annee}&mois=${periode.mois}`, `bordereau-${periode.annee}-${periode.mois}.pdf`);
     } catch (e) { alert((e as Error).message); }
   }
 
@@ -71,9 +80,17 @@ export default function PaiementsPage() {
     } catch (err) { alert((err as Error).message); }
   }
 
-  async function payer(id: string) {
-    await api(`/paiements/${id}/payer`, { method: 'PATCH' }).catch(() => {});
-    load();
+  async function confirmerPaiement(e: React.FormEvent) {
+    e.preventDefault();
+    if (!payFiche) return;
+    setSaving(true);
+    try {
+      await api(`/paiements/${payFiche.id}/payer`, {
+        method: 'PATCH',
+        body: JSON.stringify({ modePaiement: payForm.mode || undefined, referencePaiement: payForm.ref || undefined, payeeLe: payForm.date || undefined }),
+      });
+      setPayFiche(null); load();
+    } catch (err) { alert((err as Error).message); } finally { setSaving(false); }
   }
 
   return (
@@ -85,6 +102,7 @@ export default function PaiementsPage() {
             <>
               <input type="number" className="border rounded px-2 py-1 text-sm w-20" value={periode.annee} onChange={(e) => setPeriode({ ...periode, annee: e.target.value })} />
               <input type="number" min={1} max={12} className="border rounded px-2 py-1 text-sm w-16" value={periode.mois} onChange={(e) => setPeriode({ ...periode, mois: e.target.value })} />
+              <button onClick={bordereau} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Bordereau PDF</button>
               <button onClick={exportExcel} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Export Excel</button>
             </>
           )}
@@ -105,10 +123,14 @@ export default function PaiementsPage() {
                 <td className="p-3">{f.nbSujets}</td>
                 <td className="p-3">{f.totalMinutes}</td>
                 <td className="p-3 font-medium">{formatMoney(Number(f.montantTotal))}</td>
-                <td className="p-3">{f.statut}</td>
+                <td className="p-3">
+                  {f.statut === 'PAYEE'
+                    ? <span className="text-green-700">Payée{f.referencePaiement ? ` · ${f.referencePaiement}` : ''}</span>
+                    : f.statut}
+                </td>
                 <td className="p-3 text-right whitespace-nowrap">
                   <button onClick={() => genererPdf(f.id)} className="text-xs underline mr-3">PDF</button>
-                  {peutCalculer && f.statut !== 'PAYEE' && <button onClick={() => payer(f.id)} className="text-xs underline text-brand">Payer</button>}
+                  {peutCalculer && f.statut !== 'PAYEE' && <button onClick={() => { setPayForm({ mode: 'Virement', ref: '', date: '' }); setPayFiche(f); }} className="text-xs underline text-brand">Payer</button>}
                 </td>
               </tr>
             ))}
@@ -117,6 +139,20 @@ export default function PaiementsPage() {
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
+
+      <Modal open={!!payFiche} title={`Valider le paiement — ${payFiche?.reference ?? ''}`} onClose={() => setPayFiche(null)}>
+        <form onSubmit={confirmerPaiement} className="space-y-3">
+          <p className="text-sm text-gray-600">Montant : <b>{payFiche && formatMoney(Number(payFiche.montantTotal))}</b></p>
+          <label className="text-sm block">Mode de paiement
+            <select className={INPUT} value={payForm.mode} onChange={(e) => setPayForm({ ...payForm, mode: e.target.value })}>
+              <option>Virement</option><option>Western Union</option><option>MoneyGram</option><option>Wave</option><option>Espèces</option><option>Autre</option>
+            </select>
+          </label>
+          <input className={INPUT} placeholder="Référence (n° transaction / bordereau)" value={payForm.ref} onChange={(e) => setPayForm({ ...payForm, ref: e.target.value })} />
+          <label className="text-sm block">Date de paiement<input type="date" className={INPUT} value={payForm.date} onChange={(e) => setPayForm({ ...payForm, date: e.target.value })} /></label>
+          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Validation…' : 'Confirmer le paiement'}</button>
+        </form>
+      </Modal>
 
       <Modal open={open} title="Calculer une pige" onClose={() => setOpen(false)}>
         <form onSubmit={submit} className="space-y-3">

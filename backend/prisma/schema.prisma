@@ -221,6 +221,8 @@ model FichePaiement {
   statut        StatutFiche @default(BROUILLON)
   pdfUrl        String?
   payeeLe       DateTime?
+  modePaiement       String?  // Virement, Western Union, Wave, espèces…
+  referencePaiement  String?  // n° de transaction / bordereau bancaire
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
