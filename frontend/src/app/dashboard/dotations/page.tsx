@@ -4,6 +4,7 @@ import { api, apiPaged, apiUpload, getUser } from '@/lib/api';
 import Pagination from '@/components/Pagination';
 import Modal from '@/components/Modal';
 import SignaturePad, { type SignatureHandle } from '@/components/SignaturePad';
+import { useLang } from '@/lib/i18n';
 
 interface Dotation {
   id: string; dateRemise: string; statut: string; etatRemise: string;
@@ -31,6 +32,7 @@ export default function DotationsPage() {
   const [rForm, setRForm] = useState({ etatRetour: 'BON_ETAT', observationsRetour: '' });
   const [photosRetour, setPhotosRetour] = useState<FileList | null>(null);
   const sigRef = useRef<SignatureHandle>(null);
+  const { t } = useLang();
 
   async function uploadPhotos(dotationId: string, files: FileList | null, kind: string) {
     if (!files) return;
@@ -102,13 +104,13 @@ export default function DotationsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Dotations</h1>
-        {peutCreer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvelle dotation</button>}
+        <h1 className="text-2xl font-bold">{t('Dotations', 'Equipment assignments')}</h1>
+        {peutCreer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">{t('+ Nouvelle dotation', '+ New assignment')}</button>}
       </div>
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
-            <tr><th className="p-3">Matériel</th><th className="p-3">Catégorie</th><th className="p-3">JRI</th><th className="p-3">Remise</th><th className="p-3">État remise</th><th className="p-3">Statut</th><th className="p-3"></th></tr>
+            <tr><th className="p-3">{t('Matériel', 'Equipment')}</th><th className="p-3">{t('Catégorie', 'Category')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Remise', 'Handed over')}</th><th className="p-3">{t('État remise', 'Condition')}</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
           </thead>
           <tbody>
             {list.map((d) => (
@@ -121,12 +123,12 @@ export default function DotationsPage() {
                 <td className="p-3">{d.statut}</td>
                 <td className="p-3 text-right">
                   {peutCreer && d.statut === 'EN_COURS' && (
-                    <button onClick={() => { setRForm({ etatRetour: 'BON_ETAT', observationsRetour: '' }); setError(''); setRestit(d); }} className="text-xs underline text-brand">Restituer</button>
+                    <button onClick={() => { setRForm({ etatRetour: 'BON_ETAT', observationsRetour: '' }); setError(''); setRestit(d); }} className="text-xs underline text-brand">{t('Restituer', 'Return')}</button>
                   )}
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={7}>Aucune dotation</td></tr>}
+            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={7}>{t('Aucune dotation', 'No assignments')}</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />

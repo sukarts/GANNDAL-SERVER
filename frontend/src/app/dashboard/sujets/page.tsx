@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, apiPaged, getUser } from '@/lib/api';
+import { useLang } from '@/lib/i18n';
 import Modal from '@/components/Modal';
 import Pagination from '@/components/Pagination';
 
@@ -36,6 +37,7 @@ export default function SujetsPage() {
   const [jris, setJris] = useState<Jri[]>([]);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ titre: '', description: '', rubrique: '', jriId: '', dateLimite: '', priorite: 'NORMALE', dureeMinutes: '' });
+  const { t } = useLang();
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
@@ -82,10 +84,10 @@ export default function SujetsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Sujets</h1>
+        <h1 className="text-2xl font-bold">{t('Sujets', 'Assignments')}</h1>
         {peutCreer && (
           <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">
-            + Nouveau sujet
+            {t('+ Nouveau sujet', '+ New assignment')}
           </button>
         )}
       </div>
@@ -94,8 +96,8 @@ export default function SujetsPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
             <tr>
-              <th className="p-3">Référence</th><th className="p-3">Titre</th><th className="p-3">JRI</th>
-              <th className="p-3">Priorité</th><th className="p-3">Échéance</th><th className="p-3">Statut</th>
+              <th className="p-3">{t('Référence', 'Reference')}</th><th className="p-3">{t('Titre', 'Title')}</th><th className="p-3">{t('JRI', 'Contributor')}</th>
+              <th className="p-3">{t('Priorité', 'Priority')}</th><th className="p-3">{t('Échéance', 'Deadline')}</th><th className="p-3">{t('Statut', 'Status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -111,7 +113,7 @@ export default function SujetsPage() {
                 <td className="p-3"><span className={`px-2 py-1 rounded text-xs ${STATUT_COLOR[s.statut] ?? ''}`}>{s.statut}</span></td>
               </tr>
             ))}
-            {sujets.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>Aucun sujet</td></tr>}
+            {sujets.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>{t('Aucun sujet', 'No assignments')}</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />

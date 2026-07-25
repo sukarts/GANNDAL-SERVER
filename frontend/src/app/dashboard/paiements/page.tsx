@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api, apiDownload, apiPaged, getUser } from '@/lib/api';
 import Pagination from '@/components/Pagination';
 import { formatMoney } from '@/lib/money';
+import { useLang } from '@/lib/i18n';
 import Modal from '@/components/Modal';
 
 interface Fiche {
@@ -29,6 +30,7 @@ export default function PaiementsPage() {
   const [periode, setPeriode] = useState({ annee: String(now.getFullYear()), mois: String(now.getMonth() + 1) });
   const [payFiche, setPayFiche] = useState<Fiche | null>(null);
   const [payForm, setPayForm] = useState({ mode: 'Virement', ref: '', date: '' });
+  const { t } = useLang();
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCalculer = user?.role === 'ADMIN' || user?.role === 'COMPTABLE';
 
@@ -102,7 +104,7 @@ export default function PaiementsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Piges & paiements</h1>
+        <h1 className="text-2xl font-bold">{t('Piges & paiements', 'Fees & payments')}</h1>
         <div className="flex items-center gap-2">
           {peutCalculer && (
             <>
@@ -119,7 +121,7 @@ export default function PaiementsPage() {
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500">
-            <tr><th className="p-3">Référence</th><th className="p-3">JRI</th><th className="p-3">Période</th><th className="p-3">Sujets</th><th className="p-3">Minutes</th><th className="p-3">Total</th><th className="p-3">Statut</th><th className="p-3"></th></tr>
+            <tr><th className="p-3">{t('Référence', 'Reference')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Période', 'Period')}</th><th className="p-3">{t('Sujets', 'Items')}</th><th className="p-3">Minutes</th><th className="p-3">Total</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
           </thead>
           <tbody>
             {list.map((f) => (
@@ -132,16 +134,16 @@ export default function PaiementsPage() {
                 <td className="p-3 font-medium">{formatMoney(Number(f.montantTotal))}</td>
                 <td className="p-3">
                   {f.statut === 'PAYEE'
-                    ? <span className="text-green-700">Payée{f.referencePaiement ? ` · ${f.referencePaiement}` : ''}</span>
+                    ? <span className="text-green-700">{t('Payée', 'Paid')}{f.referencePaiement ? ` · ${f.referencePaiement}` : ''}</span>
                     : f.statut}
                 </td>
                 <td className="p-3 text-right whitespace-nowrap">
                   <button onClick={() => genererPdf(f.id)} className="text-xs underline mr-3">PDF</button>
-                  {peutCalculer && f.statut !== 'PAYEE' && <button onClick={() => { setPayForm({ mode: 'Virement', ref: '', date: '' }); setPayFiche(f); }} className="text-xs underline text-brand">Payer</button>}
+                  {peutCalculer && f.statut !== 'PAYEE' && <button onClick={() => { setPayForm({ mode: 'Virement', ref: '', date: '' }); setPayFiche(f); }} className="text-xs underline text-brand">{t('Payer', 'Pay')}</button>}
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={8}>Aucune fiche</td></tr>}
+            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={8}>{t('Aucune fiche', 'No slips')}</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
