@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, apiUpload, getUser } from '@/lib/api';
+import { useLang } from '@/lib/i18n';
 
 interface Element { id: string; type: string; nomFichier: string; version: number; url: string | null; tailleOctets: string; createdAt: string }
 interface Validation { id: string; action: string; commentaire: string | null; createdAt: string; validateur: { nom: string; prenom: string } }
@@ -30,6 +31,7 @@ function taille(o: string): string {
 
 export default function SujetDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useLang();
   const [s, setS] = useState<SujetDetail | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -44,7 +46,7 @@ export default function SujetDetailPage() {
   useEffect(load, [load]);
 
   if (error) return <p className="text-red-600">{error}</p>;
-  if (!s) return <p>Chargement…</p>;
+  if (!s) return <p>{t('Chargement…', 'Loading…')}</p>;
 
   const estJriProprio = user?.role === 'JRI' && s.jri?.id === user.id;
   const estRedac = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
@@ -78,7 +80,7 @@ export default function SujetDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/sujets" className="text-sm text-gray-500 hover:underline">← Sujets</Link>
+      <Link href="/dashboard/sujets" className="text-sm text-gray-500 hover:underline">← {t('Sujets', 'Assignments')}</Link>
       <div className="flex items-center justify-between mt-2 mb-1">
         <h1 className="text-2xl font-bold">{s.titre}</h1>
         <span className={`px-3 py-1 rounded text-sm ${STATUT_COLOR[s.statut] ?? ''}`}>{s.statut}</span>
@@ -87,13 +89,13 @@ export default function SujetDetailPage() {
 
       <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
         <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="text-gray-500">JRI</div><div>{s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'}</div>
+          <div className="text-gray-500">{t('JRI', 'Contributor')}</div><div>{s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'}</div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="text-gray-500">Échéance</div><div>{s.dateLimite ? new Date(s.dateLimite).toLocaleDateString('fr-FR') : '—'} · {s.priorite}</div>
+          <div className="text-gray-500">{t('Échéance', 'Deadline')}</div><div>{s.dateLimite ? new Date(s.dateLimite).toLocaleDateString('fr-FR') : '—'} · {s.priorite}</div>
         </div>
         <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="text-gray-500">Durée</div><div>{s.dureeMinutes} min</div>
+          <div className="text-gray-500">{t('Durée', 'Duration')}</div><div>{s.dureeMinutes} min</div>
         </div>
       </div>
       {s.description && <p className="bg-white rounded-xl p-4 shadow-sm mb-6 text-sm">{s.description}</p>}
@@ -101,21 +103,21 @@ export default function SujetDetailPage() {
       {/* Actions JRI */}
       {estJriProprio && s.statut !== 'VALIDE' && (
         <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
-          <h2 className="font-semibold mb-3">Mes actions</h2>
+          <h2 className="font-semibold mb-3">{t('Mes actions', 'My actions')}</h2>
           <div className="flex gap-2 mb-4">
-            {s.statut === 'ASSIGNE' && <button disabled={busy} onClick={() => changerStatut('EN_COURS')} className="bg-blue-600 text-white rounded px-3 py-1.5 text-sm">Démarrer</button>}
-            {(s.statut === 'EN_COURS' || s.statut === 'REJETE') && <button disabled={busy} onClick={() => changerStatut('LIVRE')} className="bg-amber-600 text-white rounded px-3 py-1.5 text-sm">Marquer livré</button>}
+            {s.statut === 'ASSIGNE' && <button disabled={busy} onClick={() => changerStatut('EN_COURS')} className="bg-blue-600 text-white rounded px-3 py-1.5 text-sm">{t('Démarrer', 'Start')}</button>}
+            {(s.statut === 'EN_COURS' || s.statut === 'REJETE') && <button disabled={busy} onClick={() => changerStatut('LIVRE')} className="bg-amber-600 text-white rounded px-3 py-1.5 text-sm">{t('Marquer livré', 'Mark delivered')}</button>}
           </div>
           <form onSubmit={upload} className="flex flex-wrap items-end gap-2 border-t pt-3">
-            <label className="text-sm">Type
+            <label className="text-sm">{t('Type', 'Type')}
               <select className={INPUT} value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="VIDEO">Vidéo</option><option value="AUDIO">Audio</option>
+                <option value="VIDEO">{t('Vidéo', 'Video')}</option><option value="AUDIO">Audio</option>
                 <option value="PHOTO">Photo</option><option value="DOCUMENT">Document</option>
               </select>
             </label>
             <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
             <button disabled={busy || !file} className="bg-brand text-white rounded px-4 py-2 text-sm disabled:opacity-50">
-              {busy ? 'Envoi…' : 'Déposer'}
+              {busy ? t('Envoi…', 'Uploading…') : t('Déposer', 'Upload')}
             </button>
           </form>
         </div>
@@ -135,7 +137,7 @@ export default function SujetDetailPage() {
       )}
 
       {/* Éléments */}
-      <h2 className="font-semibold mb-2">Éléments déposés</h2>
+      <h2 className="font-semibold mb-2">{t('Éléments déposés', 'Uploaded files')}</h2>
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto mb-6">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">Type</th><th className="p-3">Fichier</th><th className="p-3">Version</th><th className="p-3">Taille</th><th className="p-3"></th></tr></thead>

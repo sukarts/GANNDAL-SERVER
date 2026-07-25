@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
+import { useLang } from '@/lib/i18n';
 
 interface Sujet {
   id: string; reference: string; titre: string; statut: string; priorite: string;
@@ -9,12 +10,12 @@ interface Sujet {
   jri: { nom: string; prenom: string } | null;
 }
 
-const COLS: { statut: string; label: string; color: string }[] = [
-  { statut: 'ASSIGNE', label: 'Assigné', color: 'border-gray-300' },
-  { statut: 'EN_COURS', label: 'En cours', color: 'border-blue-400' },
-  { statut: 'LIVRE', label: 'Livré', color: 'border-amber-400' },
-  { statut: 'VALIDE', label: 'Validé', color: 'border-green-500' },
-  { statut: 'REJETE', label: 'Rejeté', color: 'border-red-400' },
+const COLS: { statut: string; label: string; en: string; color: string }[] = [
+  { statut: 'ASSIGNE', label: 'Assigné', en: 'Assigned', color: 'border-gray-300' },
+  { statut: 'EN_COURS', label: 'En cours', en: 'In progress', color: 'border-blue-400' },
+  { statut: 'LIVRE', label: 'Livré', en: 'Delivered', color: 'border-amber-400' },
+  { statut: 'VALIDE', label: 'Validé', en: 'Approved', color: 'border-green-500' },
+  { statut: 'REJETE', label: 'Rejeté', en: 'Rejected', color: 'border-red-400' },
 ];
 const PRIO_DOT: Record<string, string> = { BASSE: 'bg-gray-300', NORMALE: 'bg-blue-400', HAUTE: 'bg-amber-500', URGENTE: 'bg-red-500' };
 const MOIS_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -24,6 +25,7 @@ export default function PlanningPage() {
   const [vue, setVue] = useState<'kanban' | 'calendrier'>('kanban');
   const [curseur, setCurseur] = useState(new Date());
   const [drag, setDrag] = useState<string | null>(null);
+  const { t } = useLang();
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutDeplacer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
@@ -83,10 +85,10 @@ export default function PlanningPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Planning éditorial</h1>
+        <h1 className="text-2xl font-bold">{t('Planning éditorial', 'Editorial planning')}</h1>
         <div className="flex rounded-lg border overflow-hidden text-sm">
           <button onClick={() => setVue('kanban')} className={`px-3 py-1.5 ${vue === 'kanban' ? 'bg-brand text-white' : 'bg-white'}`}>Kanban</button>
-          <button onClick={() => setVue('calendrier')} className={`px-3 py-1.5 ${vue === 'calendrier' ? 'bg-brand text-white' : 'bg-white'}`}>Calendrier</button>
+          <button onClick={() => setVue('calendrier')} className={`px-3 py-1.5 ${vue === 'calendrier' ? 'bg-brand text-white' : 'bg-white'}`}>{t('Calendrier', 'Calendar')}</button>
         </div>
       </div>
 
@@ -102,7 +104,7 @@ export default function PlanningPage() {
                 className={`bg-gray-50 rounded-xl p-2 border-t-4 ${c.color} min-h-[120px]`}
               >
                 <div className="flex items-center justify-between px-1 mb-2">
-                  <span className="text-sm font-medium">{c.label}</span>
+                  <span className="text-sm font-medium">{t(c.label, c.en)}</span>
                   <span className="text-xs text-gray-400">{items.length}</span>
                 </div>
                 {items.map((s) => <Carte key={s.id} s={s} />)}
@@ -111,7 +113,7 @@ export default function PlanningPage() {
           })}
         </div>
       )}
-      {vue === 'kanban' && peutDeplacer && <p className="text-xs text-gray-400 mt-3">Glissez-déposez une carte pour changer son statut.</p>}
+      {vue === 'kanban' && peutDeplacer && <p className="text-xs text-gray-400 mt-3">{t('Glissez-déposez une carte pour changer son statut.', 'Drag and drop a card to change its status.')}</p>}
 
       {vue === 'calendrier' && (
         <div>

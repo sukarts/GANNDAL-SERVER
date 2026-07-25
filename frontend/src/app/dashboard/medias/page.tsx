@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { apiPaged } from '@/lib/api';
+import { useLang } from '@/lib/i18n';
 import Pagination from '@/components/Pagination';
 
 interface Media {
@@ -29,6 +30,7 @@ export default function MediasPage() {
   const [type, setType] = useState('');
   const [q, setQ] = useState('');
   const [recherche, setRecherche] = useState('');
+  const { t } = useLang();
 
   const load = useCallback(() => {
     const params = new URLSearchParams();
@@ -43,13 +45,13 @@ export default function MediasPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-bold">Médiathèque</h1>
+        <h1 className="text-2xl font-bold">{t('Médiathèque', 'Media library')}</h1>
         <div className="flex items-center gap-2">
           <form onSubmit={(e) => { e.preventDefault(); setPage(1); setRecherche(q); }}>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un fichier…" className="border rounded px-3 py-1.5 text-sm w-56" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Rechercher un fichier…', 'Search a file…')} className="border rounded px-3 py-1.5 text-sm w-56" />
           </form>
           <select value={type} onChange={(e) => { setPage(1); setType(e.target.value); }} className="border rounded px-2 py-1.5 text-sm">
-            <option value="">Tous types</option>
+            <option value="">{t('Tous types', 'All types')}</option>
             {TYPES.filter(Boolean).map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
@@ -72,12 +74,12 @@ export default function MediasPage() {
               </div>
               <div className="flex justify-between items-center mt-1">
                 <Link href={`/dashboard/sujets/${m.sujet.id}`} className="text-brand font-mono text-[10px] hover:underline">{m.sujet.reference}</Link>
-                {m.url && <a href={m.url} target="_blank" className="underline text-gray-500">Ouvrir</a>}
+                {m.url && <a href={m.url} target="_blank" className="underline text-gray-500">{t('Ouvrir', 'Open')}</a>}
               </div>
             </div>
           </div>
         ))}
-        {items.length === 0 && <p className="col-span-full text-center text-gray-400 py-10">Aucun élément.</p>}
+        {items.length === 0 && <p className="col-span-full text-center text-gray-400 py-10">{t('Aucun élément.', 'No files.')}</p>}
       </div>
 
       <div className="mt-4"><Pagination page={page} total={total} limit={LIMIT} onChange={setPage} /></div>
