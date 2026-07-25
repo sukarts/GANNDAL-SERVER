@@ -52,13 +52,22 @@ dashboardRouter.get(
   requireRole('JRI'),
   asyncHandler(async (req, res) => {
     const jriId = req.user!.sub;
-    const [assignes, enCours, valides, materiels, derniereFiche] = await Promise.all([
+    const [assignes, enCours, valides, materiels, enRetard, paye, attente, fiches] = await Promise.all([
       prisma.sujet.count({ where: { jriId, statut: 'ASSIGNE' } }),
       prisma.sujet.count({ where: { jriId, statut: 'EN_COURS' } }),
       prisma.sujet.count({ where: { jriId, statut: 'VALIDE' } }),
       prisma.dotation.count({ where: { jriId, statut: 'EN_COURS' } }),
-      prisma.fichePaiement.findFirst({ where: { jriId }, orderBy: [{ annee: 'desc' }, { mois: 'desc' }] }),
+      prisma.sujet.count({ where: { jriId, dateLimite: { lt: new Date() }, statut: { in: ['ASSIGNE', 'EN_COURS', 'REJETE'] } } }),
+      prisma.fichePaiement.aggregate({ where: { jriId, statut: 'PAYEE' }, _sum: { montantTotal: true } }),
+      prisma.fichePaiement.aggregate({ where: { jriId, statut: 'GENEREE' }, _sum: { montantTotal: true } }),
+      prisma.fichePaiement.findMany({ where: { jriId }, orderBy: [{ annee: 'desc' }, { mois: 'desc' }], take: 12 }),
     ]);
-    res.json({ assignes, enCours, valides, materielsDetenus: materiels, derniereFiche });
+    res.json({
+      assignes, enCours, valides, materielsDetenus: materiels, sujetsEnRetard: enRetard,
+      revenusCumules: Number(paye._sum.montantTotal ?? 0),
+      revenusEnAttente: Number(attente._sum.montantTotal ?? 0),
+      derniereFiche: fiches[0] ?? null,
+      fiches,
+    });
   }),
 );

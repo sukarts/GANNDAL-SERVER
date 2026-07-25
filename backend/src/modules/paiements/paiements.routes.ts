@@ -119,16 +119,16 @@ paiementsRouter.get(
   }),
 );
 
-// Génération du PDF (stocké S3 + retourné)
+// Génération du PDF (stocké S3 + retourné). ADMIN/COMPTABLE, ou le JRI pour sa fiche.
 paiementsRouter.post(
   '/:id/pdf',
-  requireRole('ADMIN', 'COMPTABLE'),
   asyncHandler(async (req, res) => {
     const fiche = await prisma.fichePaiement.findUnique({
       where: { id: req.params.id },
       include: { jri: true, lignes: true },
     });
     if (!fiche) throw notFound();
+    if (req.user!.role === 'JRI' && fiche.jriId !== req.user!.sub) throw notFound();
     const codeDevise = (req.query.devise as string) ?? (req.body?.devise as string) ?? 'GNF';
     const devise = await getDevise(codeDevise);
     const buffer = await genererFichePaiementPdf(fiche, devise);
