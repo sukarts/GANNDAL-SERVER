@@ -44,6 +44,12 @@ export default function PaiementsPage() {
     } catch (e) { alert((e as Error).message); }
   }
 
+  async function exportComptable() {
+    try {
+      await apiDownload(`/paiements/export/comptable?annee=${periode.annee}`, `comptabilite-${periode.annee}.xlsx`);
+    } catch (e) { alert((e as Error).message); }
+  }
+
   function load() {
     apiPaged<Fiche>('/paiements', page, LIMIT)
       .then((r) => { setList(r.items); setTotal(r.total); })
@@ -103,7 +109,8 @@ export default function PaiementsPage() {
               <input type="number" className="border rounded px-2 py-1 text-sm w-20" value={periode.annee} onChange={(e) => setPeriode({ ...periode, annee: e.target.value })} />
               <input type="number" min={1} max={12} className="border rounded px-2 py-1 text-sm w-16" value={periode.mois} onChange={(e) => setPeriode({ ...periode, mois: e.target.value })} />
               <button onClick={bordereau} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Bordereau PDF</button>
-              <button onClick={exportExcel} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Export Excel</button>
+              <button onClick={exportExcel} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Export mois</button>
+              <button onClick={exportComptable} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Compta {periode.annee}</button>
             </>
           )}
           {peutCalculer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">Calculer une pige</button>}

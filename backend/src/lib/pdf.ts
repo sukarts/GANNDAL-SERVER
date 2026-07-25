@@ -10,6 +10,49 @@ type FicheBordereau = Prisma.FichePaiementGetPayload<{
   include: { jri: { include: { jriProfile: true } } };
 }>;
 
+// Attestation annuelle de revenus versés à un JRI
+export function genererAttestationPdf(
+  jri: { nom: string; prenom: string; email: string },
+  annee: number,
+  fiches: { mois: number; montantTotal: unknown }[],
+): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    const chunks: Buffer[] = [];
+    doc.on('data', (c) => chunks.push(c as Buffer));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    const total = fiches.reduce((s, f) => s + Number(f.montantTotal), 0);
+    doc.fontSize(20).text('GANNDAL', { align: 'center' });
+    doc.fontSize(14).text('Attestation de revenus', { align: 'center' });
+    doc.moveDown(2);
+    doc.fontSize(11).fillColor('#000');
+    doc.text(`Nous soussignés, GANNDAL, attestons avoir versé à :`);
+    doc.moveDown(0.5);
+    doc.fontSize(12).text(`${jri.prenom} ${jri.nom}`, { indent: 20 });
+    doc.fontSize(10).fillColor('#666').text(jri.email, { indent: 20 });
+    doc.moveDown();
+    doc.fillColor('#000').fontSize(11)
+      .text(`la somme totale de ${total.toLocaleString('fr-FR')} GNF au titre de l'année ${annee}, en rémunération de piges journalistiques.`);
+    doc.moveDown();
+
+    doc.fontSize(11).text('Détail par mois :', { underline: true });
+    doc.moveDown(0.3);
+    fiches.sort((a, b) => a.mois - b.mois).forEach((f) => {
+      doc.fontSize(10).text(`${String(f.mois).padStart(2, '0')}/${annee} : ${Number(f.montantTotal).toLocaleString('fr-FR')} GNF`);
+    });
+    doc.moveDown();
+    doc.fontSize(12).fillColor('#1a7f37').text(`TOTAL ${annee} : ${total.toLocaleString('fr-FR')} GNF`);
+    doc.moveDown(3);
+    doc.fillColor('#000').fontSize(10).text(`Fait pour servir et valoir ce que de droit.`);
+    doc.moveDown(2);
+    doc.text('Signature & cachet : ____________________', { align: 'right' });
+
+    doc.end();
+  });
+}
+
 // Ordre de paiement (bordereau) : liste des piges à régler pour une période.
 export function genererBordereauPdf(fiches: FicheBordereau[], annee: number, mois: number): Promise<Buffer> {
   return new Promise((resolve, reject) => {

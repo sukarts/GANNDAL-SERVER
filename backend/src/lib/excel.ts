@@ -40,3 +40,40 @@ export async function genererPaieExcel(fiches: FicheComplete[]): Promise<Buffer>
   const buf = await wb.xlsx.writeBuffer();
   return Buffer.from(buf);
 }
+
+// Export comptable annuel : toutes les fiches d'une année avec détail de paiement
+export async function genererComptableExcel(
+  fiches: (FicheComplete & { referencePaiement?: string | null; modePaiement?: string | null; payeeLe?: Date | null })[],
+): Promise<Buffer> {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Comptabilité');
+  ws.columns = [
+    { header: 'Référence', key: 'reference', width: 22 },
+    { header: 'JRI', key: 'jri', width: 26 },
+    { header: 'Période', key: 'periode', width: 12 },
+    { header: 'Montant (GNF)', key: 'montant', width: 16 },
+    { header: 'Statut', key: 'statut', width: 12 },
+    { header: 'Mode paiement', key: 'mode', width: 16 },
+    { header: 'Référence paiement', key: 'ref', width: 22 },
+    { header: 'Date paiement', key: 'date', width: 14 },
+  ];
+  ws.getRow(1).font = { bold: true };
+  let total = 0;
+  for (const f of fiches) {
+    total += Number(f.montantTotal);
+    ws.addRow({
+      reference: f.reference,
+      jri: `${f.jri.prenom} ${f.jri.nom}`,
+      periode: `${String(f.mois).padStart(2, '0')}/${f.annee}`,
+      montant: Number(f.montantTotal),
+      statut: f.statut,
+      mode: f.modePaiement ?? '',
+      ref: f.referencePaiement ?? '',
+      date: f.payeeLe ? new Date(f.payeeLe).toLocaleDateString('fr-FR') : '',
+    });
+  }
+  const row = ws.addRow({ jri: 'TOTAL', montant: total });
+  row.font = { bold: true };
+  const buf = await wb.xlsx.writeBuffer();
+  return Buffer.from(buf);
+}

@@ -7,8 +7,8 @@ import { audit } from '../../lib/audit.js';
 import { pageParams, setTotal } from '../../lib/pagination.js';
 import { notify } from '../../lib/notify.js';
 import { uploadObject } from '../../lib/s3.js';
-import { genererFichePaiementPdf, genererBordereauPdf } from '../../lib/pdf.js';
-import { genererPaieExcel } from '../../lib/excel.js';
+import { genererFichePaiementPdf, genererBordereauPdf, genererAttestationPdf } from '../../lib/pdf.js';
+import { genererPaieExcel, genererComptableExcel } from '../../lib/excel.js';
 import { getDevise } from '../../lib/currency.js';
 import { calculerPige } from '../../lib/calc.js';
 import { Prisma } from '@prisma/client';
@@ -170,6 +170,46 @@ paiementsRouter.get(
     const buffer = await genererBordereauPdf(fiches, annee, mois);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="bordereau-paiement-${annee}-${mois}.pdf"`);
+    res.send(buffer);
+  }),
+);
+
+// Attestation annuelle de revenus (PDF). JRI = la sienne ; ADMIN/COMPTABLE = tous.
+paiementsRouter.get(
+  '/attestation',
+  asyncHandler(async (req, res) => {
+    const annee = Number(req.query.annee) || new Date().getFullYear();
+    let jriId = req.query.jriId as string | undefined;
+    if (req.user!.role === 'JRI') jriId = req.user!.sub;
+    if (!jriId) throw badRequest('jriId requis');
+
+    const jri = await prisma.user.findUnique({ where: { id: jriId } });
+    if (!jri) throw notFound();
+    const fiches = await prisma.fichePaiement.findMany({
+      where: { jriId, annee, statut: 'PAYEE' },
+      select: { mois: true, montantTotal: true },
+    });
+    const buffer = await genererAttestationPdf(jri, annee, fiches);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="attestation-${jri.nom}-${annee}.pdf"`);
+    res.send(buffer);
+  }),
+);
+
+// Export comptable annuel (Excel) — toutes les fiches de l'année
+paiementsRouter.get(
+  '/export/comptable',
+  requireRole('ADMIN', 'COMPTABLE'),
+  asyncHandler(async (req, res) => {
+    const annee = Number(req.query.annee) || new Date().getFullYear();
+    const fiches = await prisma.fichePaiement.findMany({
+      where: { annee },
+      include: { jri: true, lignes: true },
+      orderBy: [{ mois: 'asc' }, { jri: { nom: 'asc' } }],
+    });
+    const buffer = await genererComptableExcel(fiches);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="comptabilite-${annee}.xlsx"`);
     res.send(buffer);
   }),
 );

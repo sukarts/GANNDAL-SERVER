@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api, getUser } from '@/lib/api';
+import { api, apiDownload, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 import BarChartMois from '@/components/BarChartMois';
 
@@ -45,7 +45,15 @@ function JriVue({ stats }: { stats: JriStats }) {
           <div className="text-3xl font-bold text-amber-600 mt-1">{formatMoney(stats.revenusEnAttente)}</div>
         </div>
       </div>
-      <h2 className="font-semibold mb-2">Mes fiches de pige</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="font-semibold">Mes fiches de pige</h2>
+        <button
+          onClick={() => apiDownload(`/paiements/attestation?annee=${new Date().getFullYear()}`, `attestation-${new Date().getFullYear()}.pdf`).catch((e) => alert((e as Error).message))}
+          className="border rounded px-3 py-1.5 text-sm hover:bg-gray-50"
+        >
+          Attestation {new Date().getFullYear()}
+        </button>
+      </div>
       <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">Référence</th><th className="p-3">Période</th><th className="p-3">Montant</th><th className="p-3">Statut</th><th className="p-3"></th></tr></thead>
