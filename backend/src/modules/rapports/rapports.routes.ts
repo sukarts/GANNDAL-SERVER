@@ -81,6 +81,44 @@ rapportsRouter.get(
   }),
 );
 
+// Tableau financier consolidé : masse salariale des piges sur une année
+rapportsRouter.get(
+  '/financier',
+  requireRole('ADMIN', 'COMPTABLE'),
+  asyncHandler(async (req, res) => {
+    const annee = Number(req.query.annee) || new Date().getFullYear();
+    const fiches = await prisma.fichePaiement.findMany({
+      where: { annee },
+      select: { mois: true, montantTotal: true, statut: true, jriId: true, jri: { select: { nom: true, prenom: true } } },
+    });
+
+    const parMois = Array.from({ length: 12 }, (_, i) => ({ mois: i + 1, total: 0, paye: 0, attente: 0 }));
+    let total = 0, paye = 0, attente = 0;
+    const parJri = new Map<string, { nom: string; montant: number }>();
+    for (const f of fiches) {
+      const m = Number(f.montantTotal);
+      const idx = f.mois - 1;
+      if (idx >= 0 && idx < 12) {
+        parMois[idx].total += m;
+        if (f.statut === 'PAYEE') parMois[idx].paye += m; else parMois[idx].attente += m;
+      }
+      total += m;
+      if (f.statut === 'PAYEE') paye += m; else attente += m;
+      if (f.jriId) {
+        const acc = parJri.get(f.jriId) ?? { nom: f.jri ? `${f.jri.prenom} ${f.jri.nom}` : '—', montant: 0 };
+        acc.montant += m;
+        parJri.set(f.jriId, acc);
+      }
+    }
+    const topJri = [...parJri.entries()]
+      .map(([jriId, a]) => ({ jriId, nom: a.nom, montant: a.montant }))
+      .sort((x, y) => y.montant - x.montant)
+      .slice(0, 10);
+
+    res.json({ annee, total, paye, attente, parMois, topJri });
+  }),
+);
+
 // SLA : respect des délais. Retards en cours + taux de livraison à l'heure par JRI.
 rapportsRouter.get(
   '/sla',

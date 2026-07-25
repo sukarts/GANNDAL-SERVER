@@ -18,6 +18,7 @@ const NAV: { href: string; label: string; en: string; roles: AuthUser['role'][] 
   { href: '/dashboard/materiel', label: 'Équipements', en: 'Equipment', roles: ['ADMIN', 'REDACTEUR', 'COMPTABLE'] },
   { href: '/dashboard/dotations', label: 'Dotations', en: 'Assignments (gear)', roles: ['ADMIN', 'REDACTEUR', 'JRI'] },
   { href: '/dashboard/budget', label: 'Budget', en: 'Budget', roles: ['ADMIN', 'COMPTABLE', 'REDACTEUR'] },
+  { href: '/dashboard/finance', label: 'Finance', en: 'Finance', roles: ['ADMIN', 'COMPTABLE'] },
   { href: '/dashboard/rapports', label: 'Rapports', en: 'Reports', roles: ['ADMIN', 'REDACTEUR', 'COMPTABLE'] },
   { href: '/dashboard/utilisateurs', label: 'Utilisateurs', en: 'Users', roles: ['ADMIN'] },
   { href: '/dashboard/devises', label: 'Devises', en: 'Currencies', roles: ['ADMIN'] },
