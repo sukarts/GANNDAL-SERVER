@@ -78,6 +78,9 @@ model JriProfile {
   // Règles de tarif personnalisé (ex: par catégorie de sujet, par client)
   tarifPersonnalise  Json?
   iban               String?
+  banque             String?  // nom de la banque / opérateur
+  pays               String?  // pays de résidence du JRI
+  modePaiementPrefere String? // Virement, Western Union, Wave…
   specialite         String?
   bio                String?
   createdAt          DateTime @default(now())

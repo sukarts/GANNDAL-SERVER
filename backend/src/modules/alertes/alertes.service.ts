@@ -12,8 +12,11 @@ export interface AlerteResume {
   nonRestitue: number;
   entretien: number;
   sujetsEnRetard: number;
+  fichesImpayees: number;
   total: number;
 }
+
+const SEUIL_IMPAYE_JOURS = 15; // fiche générée non payée au-delà
 
 // Destinataires des alertes: admins + rédacteurs (logistique)
 async function destinataires(): Promise<string[]> {
@@ -139,14 +142,45 @@ async function alerteSujetsEnRetard(dests: string[]): Promise<number> {
   return n;
 }
 
+// Fiches de pige générées mais non payées au-delà du seuil → relance compta + admin
+async function alerteFichesImpayees(): Promise<number> {
+  const limite = new Date(Date.now() - SEUIL_IMPAYE_JOURS * 24 * 3600 * 1000);
+  const fiches = await prisma.fichePaiement.findMany({
+    where: { statut: 'GENEREE', createdAt: { lte: limite } },
+    include: { jri: { select: { nom: true, prenom: true } } },
+  });
+  const compta = await prisma.user.findMany({
+    where: { role: { in: ['ADMIN', 'COMPTABLE'] }, actif: true },
+    select: { id: true },
+  });
+  let n = 0;
+  for (const f of fiches) {
+    for (const u of compta) {
+      const ok = await notifierUnique(
+        u.id,
+        'Pige non payée',
+        `${f.reference} — ${f.jri.prenom} ${f.jri.nom} (${String(f.mois).padStart(2, '0')}/${f.annee}) : ${f.montantTotal} GNF en attente depuis > ${SEUIL_IMPAYE_JOURS} j.`,
+        `/paiements/${f.id}?alerte=impaye`,
+        ['INTERNE', 'EMAIL'],
+      );
+      if (ok) n++;
+    }
+  }
+  return n;
+}
+
 // Exécute toutes les alertes et retourne un résumé
 export async function runAlertes(): Promise<AlerteResume> {
   const dests = await destinataires();
-  const [garantie, nonRestitue, entretien, sujetsEnRetard] = await Promise.all([
+  const [garantie, nonRestitue, entretien, sujetsEnRetard, fichesImpayees] = await Promise.all([
     alerteGarantie(dests),
     alerteNonRestitue(dests),
     alerteEntretien(dests),
     alerteSujetsEnRetard(dests),
+    alerteFichesImpayees(),
   ]);
-  return { garantie, nonRestitue, entretien, sujetsEnRetard, total: garantie + nonRestitue + entretien + sujetsEnRetard };
+  return {
+    garantie, nonRestitue, entretien, sujetsEnRetard, fichesImpayees,
+    total: garantie + nonRestitue + entretien + sujetsEnRetard + fichesImpayees,
+  };
 }

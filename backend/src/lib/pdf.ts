@@ -40,7 +40,9 @@ export function genererBordereauPdf(fiches: FicheBordereau[], annee: number, moi
       const y = doc.y;
       doc.fontSize(9).fillColor('#000');
       doc.text(`${f.jri.prenom} ${f.jri.nom}`, 40, y, { width: 130 });
-      doc.text(f.jri.jriProfile?.iban ?? f.jri.email, 170, y, { width: 200 });
+      const p = f.jri.jriProfile;
+      const coords = [p?.modePaiementPrefere, p?.banque, p?.iban, p?.pays].filter(Boolean).join(' · ') || f.jri.email;
+      doc.text(coords, 170, y, { width: 200 });
       doc.text(f.reference, 370, y, { width: 90 });
       doc.text(Number(f.montantTotal).toLocaleString('fr-FR'), 460, y, { width: 95, align: 'right' });
       doc.moveDown(0.8);

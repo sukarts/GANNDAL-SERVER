@@ -157,6 +157,9 @@ const updateJriSchema = z.object({
   tarifPersonnalise: z.any().optional(),
   specialite: z.string().optional(),
   iban: z.string().optional(),
+  banque: z.string().optional(),
+  pays: z.string().optional(),
+  modePaiementPrefere: z.string().optional(),
 });
 
 usersRouter.patch(

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 
-interface JriProfile { tarifParSujet: string; tarifParMinute: string; specialite: string | null; iban: string | null }
+interface JriProfile { tarifParSujet: string; tarifParMinute: string; specialite: string | null; iban: string | null; banque: string | null; pays: string | null; modePaiementPrefere: string | null }
 interface Sujet { id: string; reference: string; titre: string; statut: string; createdAt: string }
 interface Dotation { id: string; statut: string; dateRemise: string; materiel: { reference: string } }
 interface Fiche { id: string; reference: string; annee: number; mois: number; montantTotal: string; statut: string }
@@ -21,7 +21,7 @@ export default function JriDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [u, setU] = useState<JriDetail | null>(null);
   const [error, setError] = useState('');
-  const [tarifs, setTarifs] = useState({ tarifParSujet: '', tarifParMinute: '', specialite: '', iban: '' });
+  const [tarifs, setTarifs] = useState({ tarifParSujet: '', tarifParMinute: '', specialite: '', iban: '', banque: '', pays: '', modePaiementPrefere: '' });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const me = typeof window !== 'undefined' ? getUser() : null;
@@ -35,6 +35,9 @@ export default function JriDetailPage() {
         tarifParMinute: d.jriProfile?.tarifParMinute ?? '',
         specialite: d.jriProfile?.specialite ?? '',
         iban: d.jriProfile?.iban ?? '',
+        banque: d.jriProfile?.banque ?? '',
+        pays: d.jriProfile?.pays ?? '',
+        modePaiementPrefere: d.jriProfile?.modePaiementPrefere ?? '',
       });
     }).catch((e) => setError((e as Error).message));
   }, [id]);
@@ -54,9 +57,12 @@ export default function JriDetailPage() {
           tarifParMinute: tarifs.tarifParMinute ? Number(tarifs.tarifParMinute) : 0,
           specialite: tarifs.specialite || undefined,
           iban: tarifs.iban || undefined,
+          banque: tarifs.banque || undefined,
+          pays: tarifs.pays || undefined,
+          modePaiementPrefere: tarifs.modePaiementPrefere || undefined,
         }),
       });
-      setMsg('Tarifs enregistrés.'); load();
+      setMsg('Enregistré.'); load();
     } catch (err) { setMsg((err as Error).message); } finally { setSaving(false); }
   }
 
@@ -84,7 +90,16 @@ export default function JriDetailPage() {
               </label>
             </div>
             <input className={INPUT} placeholder="Spécialité" value={tarifs.specialite} onChange={(e) => setTarifs({ ...tarifs, specialite: e.target.value })} />
-            <input className={INPUT} placeholder="IBAN / coordonnées de paiement" value={tarifs.iban} onChange={(e) => setTarifs({ ...tarifs, iban: e.target.value })} />
+            <div className="pt-2 border-t text-xs text-gray-500 font-medium">Coordonnées de paiement</div>
+            <input className={INPUT} placeholder="IBAN / n° de compte" value={tarifs.iban} onChange={(e) => setTarifs({ ...tarifs, iban: e.target.value })} />
+            <div className="flex gap-3">
+              <input className={INPUT} placeholder="Banque / opérateur" value={tarifs.banque} onChange={(e) => setTarifs({ ...tarifs, banque: e.target.value })} />
+              <input className={INPUT} placeholder="Pays" value={tarifs.pays} onChange={(e) => setTarifs({ ...tarifs, pays: e.target.value })} />
+            </div>
+            <select className={INPUT} value={tarifs.modePaiementPrefere} onChange={(e) => setTarifs({ ...tarifs, modePaiementPrefere: e.target.value })}>
+              <option value="">Mode de paiement préféré…</option>
+              <option>Virement</option><option>Western Union</option><option>MoneyGram</option><option>Wave</option><option>PayPal</option><option>Espèces</option>
+            </select>
             <button disabled={saving} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark disabled:opacity-50">
               {saving ? 'Enregistrement…' : 'Enregistrer les tarifs'}
             </button>
