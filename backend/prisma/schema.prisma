@@ -230,6 +230,19 @@ model FichePaiement {
   @@index([statut])
 }
 
+// Budget éditorial prévisionnel par rubrique et période (en GNF)
+model Budget {
+  id          String   @id @default(cuid())
+  rubrique    String
+  annee       Int
+  mois        Int // 1-12
+  montantPrevu Decimal @default(0) @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([rubrique, annee, mois])
+}
+
 model PaiementLigne {
   id        String        @id @default(cuid())
   ficheId   String

@@ -12,6 +12,7 @@ import { auditRouter } from './modules/audit/audit.routes.js';
 import { currenciesRouter } from './modules/currencies/currencies.routes.js';
 import { alertesRouter } from './modules/alertes/alertes.routes.js';
 import { mediasRouter } from './modules/medias/medias.routes.js';
+import { budgetsRouter } from './modules/budgets/budgets.routes.js';
 
 export const apiRouter = Router();
 
@@ -29,3 +30,4 @@ apiRouter.use('/audit', auditRouter);
 apiRouter.use('/currencies', currenciesRouter);
 apiRouter.use('/alertes', alertesRouter);
 apiRouter.use('/medias', mediasRouter);
+apiRouter.use('/budgets', budgetsRouter);
