@@ -58,13 +58,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           menuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 text-xl font-bold border-b border-white/20">GANNDAL</div>
-        <nav className="flex-1 p-2 space-y-1 overflow-auto">
-          {NAV.filter((n) => n.roles.includes(user.role)).map((n) => (
-            <Link key={n.href} href={n.href} className="block px-3 py-2 rounded hover:bg-white/10 text-sm">
-              {t(n.label, n.en)}
-            </Link>
-          ))}
+        <div className="px-4 h-14 flex items-center gap-2 border-b border-white/15">
+          <span className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center text-sm font-bold">G</span>
+          <span className="text-lg font-semibold tracking-tight">GANNDAL</span>
+        </div>
+        <nav className="flex-1 p-2 space-y-0.5 overflow-auto">
+          {NAV.filter((n) => n.roles.includes(user.role)).map((n) => {
+            const actif = n.href === '/dashboard' ? pathname === n.href : pathname.startsWith(n.href);
+            return (
+              <Link
+                key={n.href}
+                href={n.href}
+                className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                  actif ? 'bg-white/15 font-medium' : 'text-white/85 hover:bg-white/10'
+                }`}
+              >
+                {t(n.label, n.en)}
+              </Link>
+            );
+          })}
         </nav>
         <div className="p-4 border-t border-white/20 text-sm">
           <div className="font-medium">{user.prenom} {user.nom}</div>

@@ -3,9 +3,39 @@
 @tailwind utilities;
 
 :root {
-  --bg: #f7f8fa;
+  --bg: #f6f7f9;
+  --text: #111827;
 }
+
 body {
   background: var(--bg);
-  color: #1a1a1a;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+/* Titres plus nets */
+h1, h2, h3 { letter-spacing: -0.01em; }
+
+/* Champs de formulaire cohérents + focus vert de marque */
+input, select, textarea {
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #1a7f37;
+  box-shadow: 0 0 0 3px rgb(26 127 55 / 0.12);
+}
+
+/* Boutons : transition douce */
+button { transition: background-color .15s, opacity .15s, transform .05s; }
+button:active:not(:disabled) { transform: translateY(0.5px); }
+
+/* Lignes de tableau au survol */
+tbody tr:hover { background: #fafafa; }
+
+/* Scrollbar discrète */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; background-clip: content-box; }
