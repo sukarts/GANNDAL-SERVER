@@ -85,20 +85,31 @@ cd /opt/ganndal && git pull
 docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
 ```
 
-## Sauvegarde quotidienne
-`/etc/cron.daily/ganndal-backup` :
+## Sauvegarde base de données (automatique)
+Le service `backup` du compose dump Postgres au démarrage puis toutes les 24 h vers
+`deploy/backups/` (format custom `pg_restore`, rétention `BACKUP_KEEP_DAYS`, défaut 30 j).
+Rien à installer — actif dès `up -d`.
+
 ```bash
-#!/bin/bash
+# Vérifier
+docker compose -f deploy/docker-compose.prod.yml logs backup | tail
+ls -lh /opt/ganndal/deploy/backups
+
+# Restaurer un dump (⚠️ écrase les données actuelles)
+docker compose -f deploy/docker-compose.prod.yml exec -T postgres \
+  pg_restore -U ganndal -d ganndal --clean --if-exists \
+  < /opt/ganndal/deploy/backups/ganndal-AAAAMMJJ-HHMMSS.dump
+```
+
+**Fichiers MinIO** (médias/photos) — sauvegarde séparée conseillée, ex. cron.daily :
+```bash
 D=$(date +%F)
-docker compose -f /opt/ganndal/deploy/docker-compose.prod.yml exec -T postgres \
-  pg_dump -U ganndal ganndal | gzip > /var/backups/ganndal-db-$D.sql.gz
 docker run --rm -v ganndal_miniodata:/data -v /var/backups:/backup alpine \
   tar czf /backup/ganndal-files-$D.tar.gz -C /data .
-find /var/backups -name 'ganndal-*' -mtime +30 -delete
+find /var/backups -name 'ganndal-files-*' -mtime +30 -delete
 ```
-```bash
-sudo chmod +x /etc/cron.daily/ganndal-backup
-```
+
+> Emporter les dumps hors du serveur (rsync/objet distant) pour survivre à une perte du VPS.
 
 ## Notes
 - **Vidéos volumineuses** : `client_max_body_size 2048M` déjà réglé dans `nginx.conf`.

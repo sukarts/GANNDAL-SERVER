@@ -12,6 +12,23 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks: [ganndal]
 
+  # Sauvegarde PostgreSQL quotidienne → deploy/backups/ (rétention 30 j par défaut)
+  backup:
+    image: postgres:16-alpine
+    restart: always
+    depends_on: [postgres]
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-30}
+    volumes:
+      - ./backups:/backups
+      - ./pg-backup.sh:/pg-backup.sh:ro
+    entrypoint: ['/bin/sh', '/pg-backup.sh']
+    networks: [ganndal]
+
   minio:
     image: minio/minio:latest
     restart: always

@@ -6,12 +6,16 @@ import type { CanalNotif } from '@prisma/client';
 const SEUIL_GARANTIE_JOURS = 30; // garantie proche d'expiration
 const SEUIL_NON_RESTITUE_JOURS = 90; // dotation en cours trop longue
 const SEUIL_ENTRETIEN_JOURS = 7; // ticket de maintenance ouvert non résolu
+const SEUIL_ECHEANCE_PROCHE_JOURS = 2; // deadline sujet imminente (heads-up avant retard)
+const SEUIL_VALIDATION_ATTENTE_JOURS = 3; // sujet livré non validé au-delà → escalade rédac-chef
 
 export interface AlerteResume {
   garantie: number;
   nonRestitue: number;
   entretien: number;
   sujetsEnRetard: number;
+  sujetsEcheanceProche: number;
+  validationEnAttente: number;
   fichesImpayees: number;
   total: number;
 }
@@ -142,6 +146,52 @@ async function alerteSujetsEnRetard(dests: string[]): Promise<number> {
   return n;
 }
 
+// Échéance imminente : deadline dans les prochains jours, pas encore livré → heads-up JRI + rédacteurs
+async function alerteSujetsEcheanceProche(dests: string[]): Promise<number> {
+  const maintenant = new Date();
+  const limite = new Date(Date.now() + SEUIL_ECHEANCE_PROCHE_JOURS * 24 * 3600 * 1000);
+  const sujets = await prisma.sujet.findMany({
+    where: {
+      dateLimite: { not: null, gte: maintenant, lte: limite },
+      statut: { in: ['ASSIGNE', 'EN_COURS', 'REJETE'] },
+    },
+    include: { jri: { select: { nom: true, prenom: true } } },
+  });
+  let n = 0;
+  for (const s of sujets) {
+    const message = `« ${s.titre} » (${s.reference}) — échéance ${s.dateLimite?.toLocaleDateString('fr-FR')} (dans ≤ ${SEUIL_ECHEANCE_PROCHE_JOURS} j), statut ${s.statut}.`;
+    const lien = `/sujets/${s.id}?alerte=echeance-proche`;
+    if (s.jriId) {
+      const ok = await notifierUnique(s.jriId, 'Échéance imminente', message, lien, ['INTERNE', 'EMAIL', 'WHATSAPP']);
+      if (ok) n++;
+    }
+    for (const uid of dests) {
+      const ok = await notifierUnique(uid, 'Échéance imminente', message, lien, ['INTERNE']);
+      if (ok) n++;
+    }
+  }
+  return n;
+}
+
+// Sujet livré mais non validé au-delà du seuil → escalade rédacteurs / admins
+async function alerteValidationEnAttente(dests: string[]): Promise<number> {
+  const limite = new Date(Date.now() - SEUIL_VALIDATION_ATTENTE_JOURS * 24 * 3600 * 1000);
+  const sujets = await prisma.sujet.findMany({
+    where: { statut: 'LIVRE', livreLe: { not: null, lte: limite } },
+    include: { jri: { select: { nom: true, prenom: true } } },
+  });
+  let n = 0;
+  for (const s of sujets) {
+    const message = `« ${s.titre} » (${s.reference}) livré le ${s.livreLe?.toLocaleDateString('fr-FR')} par ${s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'} — en attente de validation depuis > ${SEUIL_VALIDATION_ATTENTE_JOURS} j.`;
+    const lien = `/sujets/${s.id}?alerte=validation-attente`;
+    for (const uid of dests) {
+      const ok = await notifierUnique(uid, 'Validation en attente', message, lien, ['INTERNE', 'EMAIL']);
+      if (ok) n++;
+    }
+  }
+  return n;
+}
+
 // Fiches de pige générées mais non payées au-delà du seuil → relance compta + admin
 async function alerteFichesImpayees(): Promise<number> {
   const limite = new Date(Date.now() - SEUIL_IMPAYE_JOURS * 24 * 3600 * 1000);
@@ -172,15 +222,17 @@ async function alerteFichesImpayees(): Promise<number> {
 // Exécute toutes les alertes et retourne un résumé
 export async function runAlertes(): Promise<AlerteResume> {
   const dests = await destinataires();
-  const [garantie, nonRestitue, entretien, sujetsEnRetard, fichesImpayees] = await Promise.all([
+  const [garantie, nonRestitue, entretien, sujetsEnRetard, sujetsEcheanceProche, validationEnAttente, fichesImpayees] = await Promise.all([
     alerteGarantie(dests),
     alerteNonRestitue(dests),
     alerteEntretien(dests),
     alerteSujetsEnRetard(dests),
+    alerteSujetsEcheanceProche(dests),
+    alerteValidationEnAttente(dests),
     alerteFichesImpayees(),
   ]);
   return {
-    garantie, nonRestitue, entretien, sujetsEnRetard, fichesImpayees,
-    total: garantie + nonRestitue + entretien + sujetsEnRetard + fichesImpayees,
+    garantie, nonRestitue, entretien, sujetsEnRetard, sujetsEcheanceProche, validationEnAttente, fichesImpayees,
+    total: garantie + nonRestitue + entretien + sujetsEnRetard + sujetsEcheanceProche + validationEnAttente + fichesImpayees,
   };
 }

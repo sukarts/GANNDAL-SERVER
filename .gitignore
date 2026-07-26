@@ -7,3 +7,6 @@ deploy/.env
 deploy/certs/
 *.log
 .DS_Store
+
+# Sauvegardes Postgres locales
+deploy/backups/
