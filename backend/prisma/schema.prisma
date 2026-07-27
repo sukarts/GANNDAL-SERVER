@@ -36,6 +36,12 @@ model User {
   // Invitation par email : token à usage unique + expiration (null une fois accepté)
   invitationToken  String?   @unique
   invitationExpiry DateTime?
+  // Sécurité : anti-brute-force (verrouillage temporaire) + 2FA TOTP
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime?
+  lastLoginAt      DateTime?
+  twoFactorSecret  String?   // secret TOTP (chiffré applicativement) ; null si 2FA désactivée
+  twoFactorEnabled Boolean   @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

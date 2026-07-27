@@ -17,3 +17,5 @@ export const notFound = (msg = 'Ressource introuvable') => new HttpError(404, ms
 export const forbidden = (msg = 'Accès refusé') => new HttpError(403, msg);
 export const badRequest = (msg = 'Requête invalide', details?: unknown) => new HttpError(400, msg, details);
 export const unauthorized = (msg = 'Non authentifié') => new HttpError(401, msg);
+export const locked = (msg = 'Compte temporairement verrouillé', details?: unknown) => new HttpError(423, msg, details);
+export const tooManyRequests = (msg = 'Trop de requêtes', details?: unknown) => new HttpError(429, msg, details);

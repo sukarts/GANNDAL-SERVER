@@ -8,8 +8,8 @@ import LangSelector from '@/components/LangSelector';
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLang();
-  const [email, setEmail] = useState('admin@ganndal.media');
-  const [password, setPassword] = useState('Admin123!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,11 +18,11 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await api<{ accessToken: string; user: AuthUser }>('/auth/login', {
+      const res = await api<{ accessToken: string; refreshToken: string; user: AuthUser }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      setSession(res.accessToken, res.user);
+      setSession(res.accessToken, res.user, res.refreshToken);
       router.replace('/dashboard');
     } catch (err) {
       setError((err as Error).message);

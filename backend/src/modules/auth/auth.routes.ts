@@ -2,12 +2,17 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '../../lib/prisma.js';
-import { asyncHandler, unauthorized, badRequest } from '../../lib/http.js';
+import { asyncHandler, unauthorized, badRequest, locked } from '../../lib/http.js';
 import { signAccessToken, signRefreshToken, verifyRefresh } from '../../lib/jwt.js';
 import { authenticate } from '../../middleware/auth.js';
+import { authLimiter } from '../../middleware/rateLimit.js';
 import { audit } from '../../lib/audit.js';
 
 export const authRouter = Router();
+
+// Anti-brute-force par compte : verrouillage temporaire après N échecs.
+const LOCK_THRESHOLD = 5;
+const LOCK_MINUTES = 15;
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -16,12 +21,40 @@ const loginSchema = z.object({
 
 authRouter.post(
   '/login',
+  authLimiter,
   asyncHandler(async (req, res) => {
     const { email, password } = loginSchema.parse(req.body);
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.actif) throw unauthorized('Identifiants invalides');
+
+    // Compte verrouillé (échecs répétés récents)
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      throw locked('Compte temporairement verrouillé, réessayez plus tard', { until: user.lockedUntil });
+    }
+
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) throw unauthorized('Identifiants invalides');
+    if (!ok) {
+      const count = user.failedLoginCount + 1;
+      const doLock = count >= LOCK_THRESHOLD;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginCount: doLock ? 0 : count,
+          lockedUntil: doLock ? new Date(Date.now() + LOCK_MINUTES * 60_000) : null,
+        },
+      });
+      if (doLock) {
+        await audit({ userId: user.id, action: 'ACCOUNT_LOCKED', entite: 'User', entiteId: user.id, ip: req.ip });
+        throw locked(`Trop de tentatives échouées. Compte verrouillé ${LOCK_MINUTES} minutes.`);
+      }
+      throw unauthorized('Identifiants invalides');
+    }
+
+    // Succès : réinitialise le compteur d'échecs
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { failedLoginCount: 0, lockedUntil: null, lastLoginAt: new Date() },
+    });
 
     const payload = { sub: user.id, role: user.role, email: user.email };
     const accessToken = signAccessToken(payload);

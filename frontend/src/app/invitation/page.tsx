@@ -31,11 +31,11 @@ export default function InvitationPage() {
     if (form.mdp !== form.confirme) { setError('La confirmation ne correspond pas.'); return; }
     setSaving(true);
     try {
-      const res = await api<{ accessToken: string; user: AuthUser }>('/auth/accept-invitation', {
+      const res = await api<{ accessToken: string; refreshToken: string; user: AuthUser }>('/auth/accept-invitation', {
         method: 'POST',
         body: JSON.stringify({ token, motDePasse: form.mdp }),
       });
-      setSession(res.accessToken, res.user);
+      setSession(res.accessToken, res.user, res.refreshToken);
       router.replace('/dashboard');
     } catch (err) { setError((err as Error).message); } finally { setSaving(false); }
   }
