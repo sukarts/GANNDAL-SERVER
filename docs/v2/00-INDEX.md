@@ -43,14 +43,14 @@
 
 Chaque décision : **impact**, **options**, **recommandation**. À valider par le client (marqué 🔴 si structurant).
 
-### 🔴 D1 — Mono-organisation vs SaaS multi-tenant
-- **Manque** : GANNDAL est-il un outil interne d'**un** média, ou un produit **vendu à plusieurs** médias/agences ?
-- **Impact** : structure de la base (isolation), auth, facturation, roadmap, prix. Décision la plus structurante du dossier.
-- **Options** :
-  - **A. Mono-org** (état actuel) : simple, rapide, mais plafond commercial nul.
-  - **B. Multi-tenant mutualisé** (1 base, colonne `organisationId` partout + Row-Level Security Postgres) : meilleur coût/scalabilité, isolation logique.
-  - **C. Multi-tenant base-par-client** : isolation forte, coût opérationnel élevé, lourd à < 50 clients.
-- **Recommandation** : **B**. Le brief parle de « SaaS » et de « réussite commerciale » → produit vendable. Multi-tenant mutualisé avec RLS = standard SaaS B2B early-stage. Introduit dès la V2 (rétrofit ultérieur = douloureux). *Tout le dossier suppose B.*
+### ✅ D1 — Mono-organisation vs SaaS multi-tenant — **TRANCHÉ : A (mono-org, outil interne)**
+- **Décision client (2026-07)** : GANNDAL est un **outil interne d'un seul média**. Pas de vente multi-clients.
+- **Conséquences** (le dossier V2 supposait B — invalidé) :
+  - ❌ Abandon : table `Organisation`, colonne `organisationId`, Row-Level Security, devise pivot par org, facturation/plans/MRR, onboarding self-service, isolation tenant.
+  - ✅ Simplifications : une seule organisation implicite ; sécurité au **périmètre interne** (moins de surface, mais 2FA/secrets/audit restent utiles) ; GNF reste devise de base globale (voir D3=A).
+  - 📉 Roadmap allégée : **la phase « MVP multi-tenant » est supprimée** → on passe du Sprint 0 directement au durcissement + fonctionnalités métier (voir 13-ROADMAP, à réviser).
+  - Sections « analyse business / marché / concurrents / SaaS » (01-AUDIT) → informatives seulement, non prioritaires.
+- **Ce qui reste 100 % valable** : audit fonctionnel, cahier des charges (hors multi-tenant), archi technique (monolithe modulaire — encore plus justifié), modèle de données (sans `organisationId`/RLS), API, UX/UI, design system, wireframes, flows, plans tests/déploiement/monitoring/sécurité/scalabilité.
 
 ### 🔴 D2 — Migrations vs `db push`
 - **Manque** : la prod tourne sur `prisma db push --accept-data-loss` (pas d'historique de schéma).
@@ -58,10 +58,8 @@ Chaque décision : **impact**, **options**, **recommandation**. À valider par l
 - **Options** : (A) garder `db push` ; (B) passer à `prisma migrate` versionné.
 - **Recommandation** : **B** dès Sprint 0. `db push` acceptable en prototypage, **inacceptable** pour un SaaS en prod avec données clients. Voir dette DT-01.
 
-### D3 — Devise de base GNF
-- **Manque** : le GNF (franc guinéen) reste-t-il la devise pivot en multi-tenant international ?
-- **Options** : (A) GNF global ; (B) **devise pivot par organisation**.
-- **Recommandation** : **B**. Chaque organisation choisit sa devise comptable. Taux de conversion par org. GNF devient un défaut, pas une contrainte.
+### ✅ D3 — Devise de base GNF — **TRANCHÉ : A (GNF global)**
+- Mono-org (D1=A) → **GNF reste la devise pivot unique**, multi-devise à l'affichage (état actuel conservé). Pas de devise par organisation. Historisation des taux (RG-08) reste pertinente pour figer les documents émis.
 
 ### D4 — Paiement des pigistes
 - **Établi** (décision client existante) : **pas d'intégration de paiement** (JRI dispersés mondialement). L'app **génère un document** (bordereau/fiche) et la compta **valide** avec référence de transaction. On conserve. Voir F-PAIE.
