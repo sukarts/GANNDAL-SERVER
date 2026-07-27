@@ -3,25 +3,23 @@
 Structure : **Epic → Story → sous-tâches**. Priorité MoSCoW (Must/Should/Could/Won't). Complexité en points (Fibonacci). Estimation indicative (j-h ≈ complexité×0,7). Risque L/M/H.
 
 > AC détaillés : voir `03-CAHIER-DES-CHARGES.md`. Ordonnancement : voir `13-ROADMAP.md`.
+> **Mono-org (D1=A)** : l'EPIC « multi-tenant » et l'EPIC « Enterprise » sont supprimés. A2/A3/A4 (Organisation/RLS/séquences par org) abandonnés.
 
 ---
 
-## EPIC A — Socle multi-tenant & migrations (fondation)
-| Story | Prio | Cx | Risque | Sous-tâches |
-|-------|------|----|--------|-------------|
-| A1 Passer à Prisma Migrate (baseline) | Must | 5 | H | baseline schéma, pipeline migrate deploy, doc rollback |
-| A2 Modèle Organisation + `organisationId` partout | Must | 13 | H | migration additive, backfill, NOT NULL |
-| A3 RLS Postgres + contexte tenant | Must | 8 | H | policies, `set app.org_id`, tests d'isolation |
-| A4 Références/séquences par org | Must | 3 | M | SUJ/PIGE par org |
-| A5 Chiffrement PII (IBAN/banque) | Must | 5 | M | pgcrypto/app-level, masquage UI |
+## EPIC A — Socle (fondation)
+| Story | Prio | Cx | Risque | Sous-tâches | État |
+|-------|------|----|--------|-------------|------|
+| A1 Passer à Prisma Migrate (baseline) | Must | 5 | H | baseline schéma, pipeline migrate deploy, doc rollback | ✅ fait |
+| A5 Chiffrement PII (IBAN/banque) | Must | 5 | M | chiffrement applicatif, masquage UI | |
 
 ## EPIC B — Sécurité & auth
 | B1 Refresh silencieux (intercepteur FE) | Must | 3 | M | rotation, retry file, logout si révoqué |
 | B2 Rate-limit + lockout login | Must | 3 | M | compteur Redis, email alerte |
 | B3 2FA TOTP | Should | 5 | M | secret chiffré, enable/verify, recovery codes |
 | B4 Reset password | Must | 3 | L | token, email, form |
-| B5 Politique mot de passe + rotation démo | Must | 2 | L | zxcvbn, supprimer comptes démo prod |
-| B6 Secrets hors dépôt (coffre) | Must | 3 | M | SOPS/Docker secrets |
+| B5 Politique mot de passe + seed prod-safe | Must | 2 | L | zxcvbn, comptes démo hors prod (✅ seed fait) |
+| B6 Secrets hors dépôt (coffre) + rotation DS-02 | Must | 3 | M | SOPS/Docker secrets, roter DB/PAT/SMTP exposés |
 
 ## EPIC C — Éditorial
 | C1 Machine à états serveur (sujets) | Must | 5 | M | transitions, 409, tests |
@@ -65,27 +63,23 @@ Structure : **Epic → Story → sous-tâches**. Priorité MoSCoW (Must/Should/C
 | G8 Recherche globale (FTS) | Should | 5 | M | tsvector, UI |
 
 ## EPIC H — Observabilité & qualité
-| H1 Logs structurés + requestId/tenantId | Must | 3 | L | pino, middleware |
+| H1 Logs structurés + requestId | Must | 3 | L | pino, middleware | ✅ fait |
 | H2 Métriques + traces (OTel/Prometheus) | Should | 8 | M | instrumentation, Grafana |
-| H3 Sentry (erreurs FE/BE) | Must | 2 | L | SDK, sourcemaps |
+| H3 Sentry (erreurs FE/BE) | Must | 2 | L | SDK, sourcemaps (besoin DSN) |
 | H4 Tests API (supertest) parcours critiques | Must | 8 | M | auth, sujets, paie, dotations |
 | H5 Tests E2E (Playwright) | Should | 8 | M | login→sujet→valider→payer |
-| H6 CI/CD (lint/typecheck/test/scan/deploy) | Must | 5 | M | GitHub Actions, envs |
+| H6 CI (lint/typecheck/test/migrate/audit) | Must | 5 | M | GitHub Actions | ✅ fait |
 | H7 Tests de charge (k6) endpoints chauds | Could | 3 | L | scénarios |
 
-## EPIC I — Infra & HA
-| I1 Backups externalisés + PITR | Must | 5 | M | WAL archivé, offsite |
-| I2 Réplicas backend/worker (stateless) | Should | 5 | M | proxy, healthchecks |
-| I3 CDN devant médias | Should | 3 | L | preview publics |
-| I4 K8s (palier HA) | Won't(V2) | 13 | H | différé Enterprise |
+## EPIC I — Infra
+| I1a Backup quotidien Postgres | Must | 3 | L | service compose | ✅ fait |
+| I1b PITR (WAL archivé) + backup offsite | Should | 5 | M | archive_command, rsync distant |
+| I2 Réplicas backend/worker (stateless) | Could | 5 | M | proxy, healthchecks (charge interne faible) |
+| I3 CDN devant médias | Could | 3 | L | preview publics |
 
-## EPIC J — Enterprise
-| J1 SSO SAML/OIDC | Could | 13 | M | |
-| J2 API publique + clés | Could | 8 | M | quotas, OpenAPI |
-| J3 Webhooks signés + retries | Could | 8 | M | HMAC, DLQ |
-| J4 Audit immutable + rétention | Should | 5 | M | append-only, WORM |
-
-## Récapitulatif priorités
-- **Must (bloquant V2)** : A1–A5, B1–B2,B4–B6, C1–C2, D1–D3, E5, F1–F2, G6, H1,H3–H4,H6, I1.
-- **Should** : le gros de C/D/E/F/G/H/I restants.
-- **Could/Won't(V2)** : E2 scan, F4, H7, I4 K8s, EPIC J (Enterprise).
+## Récapitulatif priorités (mono-org)
+- **Fait (Sprint 0)** : A1, B5, F(cron alertes existant), H1, H6, I1a.
+- **Must (V1)** : A5, B1, B2, B3, B4, B6, C1, D1, D2, D3, DM-01, E5, F1, F2, H3, H4.
+- **Should (V1/V2)** : C2, C3, C4, D4, D5, D6, D7, E1, E3, F3, F5, G1, G2, G3, G6, G7, G8, H2, H5, I1b.
+- **Could/plus tard** : C5, D8, E2, F4, G4, H7, I2, I3.
+- **Abandonné (mono-org)** : A2/A3/A4 (multi-tenant), tout l'ex-EPIC Enterprise (SSO, API publique, webhooks, K8s-HA, WORM), G5 onboarding self-service.

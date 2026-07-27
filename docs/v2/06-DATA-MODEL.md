@@ -1,27 +1,24 @@
 # Phase 6 — Modèle de données
 
+> **D1=A (outil interne mono-org)** : pas de table `Organisation`, pas d'`organisationId`, pas de Row-Level Security. Une seule organisation implicite. Le schéma V1 est conservé et **enrichi** (pas refondu).
+
 ## 6.1 Choix de modélisation
 
-- **Multi-tenant (D1=B)** : ajout d'`Organisation` + colonne `organisationId` sur **toutes** les tables métier, avec **Row-Level Security** Postgres (policy `organisation_id = current_setting('app.org_id')`). Le backend positionne `app.org_id` par requête après auth.
-- **Montants** : `Decimal(12,2)` (18,6 pour les taux) — jamais de float. Stockés dans la **devise pivot de l'organisation**.
-- **Snapshots de tarif** : les lignes de pige (`PaiementLigne`) portent `tarif`/`montant` figés (RG-03) — indépendants des évolutions de `JriProfile`.
-- **Soft delete** : `deletedAt` sur les entités métier (RG-07) ; hard delete réservé RGPD.
-- **Historisation des taux** : nouvelle table `TauxChange` (RG-08) ; les documents émis référencent le taux gelé.
-- **Références lisibles** : `SUJ-AAAA-NNNN`, `PIGE-AAAA-MM-NNNN` — séquence par organisation.
-- **Audit append-only** : `AuditLog` sans update/delete (contrainte + révocation de droits).
+- **Montants** : `Decimal(12,2)` (18,6 pour les taux) — jamais de float. Stockés en **GNF** (devise de base globale, D3=A), conversion à l'affichage.
+- **Snapshots de tarif** : les lignes de pige (`PaiementLigne`) portent `tarif`/`montant` **figés** (RG-03) — indépendants des évolutions ultérieures de `JriProfile`.
+- **Soft delete** : `deletedAt` sur les entités métier (RG-07) ; hard delete réservé aux demandes RGPD.
+- **Historisation des taux** : nouvelle table `TauxChange` (RG-08) ; les documents émis référencent le taux gelé au moment de l'émission.
+- **Références lisibles** : `SUJ-AAAA-NNNN`, `PIGE-AAAA-MM-NNNN` — séquence globale.
+- **Audit append-only** : `AuditLog` sans update/delete (droits révoqués + convention).
+- **PII sensible** : `iban`/`banque` chiffrés au repos.
 
-## 6.2 ERD (cible V2)
+## 6.2 ERD
 
 ```mermaid
 erDiagram
-  Organisation ||--o{ User : "emploie"
-  Organisation ||--o{ Currency : "définit"
-  Organisation ||--o{ Sujet : "possède"
-  Organisation ||--o{ Materiel : "possède"
-  Organisation ||--o{ FichePaiement : "possède"
   User ||--o| JriProfile : "a"
   User ||--o{ RefreshToken : "ouvre"
-  User ||--o{ Sujet : "crée/assigné"
+  User ||--o{ Sujet : "crée / est assigné"
   Sujet ||--o{ SujetElement : "contient"
   Sujet ||--o{ Validation : "reçoit"
   Sujet ||--o{ PaiementLigne : "facture"
@@ -34,101 +31,91 @@ erDiagram
   User ||--o{ Dotation : "détient (JRI)"
   User ||--o{ Notification : "reçoit"
   User ||--o{ AuditLog : "génère"
-  Organisation ||--o{ Budget : "planifie"
   Currency ||--o{ TauxChange : "historise"
 ```
 
-## 6.3 Tables (nouvelles/modifiées V2)
+## 6.3 Tables (évolutions V2 sur le schéma existant)
 
-### Organisation (NOUVELLE)
-| Colonne | Type | Contraintes |
-|---------|------|-------------|
-| id | cuid | PK |
-| nom | text | not null |
-| slug | text | unique |
-| devisePivot | text (FK Currency.code) | not null, défaut 'GNF' |
-| logoUrl | text | null |
-| pays | text | null |
-| plan | enum(STARTER,PRO,ENTERPRISE) | défaut STARTER |
-| parametres | jsonb | seuils alertes, modèles doc |
-| createdAt/updatedAt | timestamptz | |
-- **Règle** : `devisePivot` non modifiable si des documents (`FichePaiement`) émis existent (D3).
+> Seules les **évolutions** sont listées. Les tables non citées restent conformes à `schema.prisma` V1.
 
-### User (MODIFIÉE)
-Ajouts : `organisationId` (FK, not null, index), `twoFactorSecret` (text null, **chiffré**), `twoFactorEnabled` (bool), `lastLoginAt`, `failedLoginCount`, `lockedUntil`, `deletedAt`.
-Index : `(organisationId, role)`, `(organisationId, email)` unique. **RLS** activée.
+### User (MODIFIÉE — sécurité)
+Ajouts : `twoFactorSecret` (text null, **chiffré**), `twoFactorEnabled` (bool), `lastLoginAt` (timestamptz), `failedLoginCount` (int, défaut 0), `lockedUntil` (timestamptz null), `deletedAt` (timestamptz null).
+Conserve : `email` (unique), `passwordHash`, `nom`, `prenom`, `telephone`, `role`, `actif`, `invitationToken`/`invitationExpiry`. Index `role` conservé.
 
-### JriProfile (MODIFIÉE)
-`iban`/`banque` → **chiffrés au repos** (pgcrypto ou chiffrement applicatif). Ajout `deviseTarif` (FK Currency, défaut = pivot org). Colonnes existantes conservées : `tarifParSujet`, `tarifParMinute`, `tarifPersonnalise (jsonb)`, `pays`, `modePaiementPrefere`, `specialite`, `bio`.
+### JriProfile (MODIFIÉE — PII)
+`iban` et `banque` → **chiffrés au repos** (chiffrement applicatif ; UI masque l'IBAN). Colonnes conservées : `tarifParSujet`, `tarifParMinute`, `tarifPersonnalise (jsonb)`, `pays`, `modePaiementPrefere`, `specialite`, `bio`.
 
 ### Sujet (MODIFIÉE)
-Ajouts : `organisationId` (FK, index), `deletedAt`. Conserve `reference` (unique **par org**), `titre`, `description`, `rubrique`, `jriId`, `createdById`, `dateLimite`, `priorite`, `statut`, `dureeMinutes`, `livreLe`, `valideLe`.
-Index : `(organisationId, statut)`, `(organisationId, jriId)`, `(organisationId, dateLimite)`. **FTS** : colonne `searchVector tsvector` + index GIN.
-- **Règle** : machine à états (RG-04) — transitions valides uniquement.
+Ajouts : `deletedAt`, colonne `searchVector tsvector` (**FTS**) + index GIN. Conserve `reference` (unique global), `titre`, `description`, `rubrique`, `jriId`, `createdById`, `dateLimite`, `priorite`, `statut`, `dureeMinutes`, `livreLe`, `valideLe`. Index conservés (`statut`, `jriId`, `dateLimite`).
+- **Règle** : machine à états serveur (RG-04) — transitions valides uniquement.
 
-### SujetElement (MODIFIÉE)
-Ajouts : `organisationId`, `thumbnailKey` (vignette), `status` (enum UPLOADING/READY/FAILED pour multipart), `checksum`. Conserve `type`, `nomFichier`, `storageKey`, `url`, `mime`, `tailleOctets (bigint)`, `version`, `uploadedById`.
+### SujetElement (MODIFIÉE — uploads résumables)
+Ajouts : `thumbnailKey` (vignette), `status` (enum UPLOADING/READY/FAILED), `checksum`. Conserve `type`, `nomFichier`, `storageKey`, `url`, `mime`, `tailleOctets (bigint)`, `version`, `uploadedById`.
 
-### Validation (INCHANGÉE + org)
-`+organisationId`, `+versionRef` (lien vers `SujetElement.version` évaluée). Conserve `action` (VALIDE/REJETE/CORRECTION_DEMANDEE), `commentaire`, `validateurId`.
+### Validation (MODIFIÉE)
+Ajout `versionRef` (version de `SujetElement` évaluée). Conserve `action` (VALIDE/REJETE/CORRECTION_DEMANDEE), `commentaire`, `validateurId`.
 
-### Currency (MODIFIÉE)
-Devient **par organisation** : PK composite `(organisationId, code)`. Conserve `nom`, `symbole`, `tauxGnf`→`tauxPivot` (1 unité = tauxPivot devise pivot), `actif`, `parDefaut`.
+### Currency (INCHANGÉE)
+Reste globale : PK `code`, `nom`, `symbole`, `tauxGnf` (1 unité = tauxGnf GNF), `actif`, `parDefaut`. GNF = pivot (tauxGnf=1).
 
-### TauxChange (NOUVELLE — historisation D3/RG-08)
-| id | organisationId | code | tauxPivot Decimal(18,6) | effectiveFrom timestamptz | source |
-Index `(organisationId, code, effectiveFrom)`.
+### TauxChange (NOUVELLE — historisation RG-08)
+| Colonne | Type | Notes |
+|---------|------|-------|
+| id | cuid | PK |
+| code | text (FK Currency.code) | |
+| tauxGnf | Decimal(18,6) | valeur du taux |
+| effectiveFrom | timestamptz | date de prise d'effet |
+| source | text null | manuel / import |
+Index `(code, effectiveFrom)`. Les documents émis (fiches) référencent le taux applicable à leur date.
 
 ### FichePaiement (MODIFIÉE)
-Ajouts : `organisationId`, `deviseCode` (devise d'émission), `tauxGele Decimal(18,6)`, `verrouille bool` (période), `pdfKey`. Conserve `reference` (unique/org), `jriId`, `annee`, `mois`, `nbSujets`, `totalMinutes`, `montantBase`, `bonus`, `penalites`, `montantTotal`, `statut` (BROUILLON/GENEREE/PAYEE), `payeeLe`, `modePaiement`, `referencePaiement`. Unicité `(organisationId, jriId, annee, mois)`.
+Ajouts : `verrouille` (bool — période comptable verrouillée), `pdfKey`, `tauxGele Decimal(18,6)` (taux figé si émise dans une devise ≠ GNF). Conserve `reference` (unique), `jriId`, `annee`, `mois`, `nbSujets`, `totalMinutes`, `montantBase`, `bonus`, `penalites`, `montantTotal`, `statut` (BROUILLON/GENEREE/PAYEE), `payeeLe`, `modePaiement`, `referencePaiement`. Unicité `(jriId, annee, mois)` conservée.
 - **Règle** : `PAYEE` ⇒ lignes immuables (RG-02).
 
-### PaiementLigne (INCHANGÉE + org)
-`+organisationId`. Conserve `ficheId`, `sujetId?`, `libelle`, `quantite`, `tarif` (**figé**), `montant`.
+### PaiementLigne (INCHANGÉE)
+`ficheId`, `sujetId?`, `libelle`, `quantite`, `tarif` (**figé**), `montant`.
 
-### Budget (MODIFIÉE)
-`+organisationId`. Unicité `(organisationId, rubrique, annee, mois)`. Conserve `montantPrevu`.
+### Budget (INCHANGÉE)
+`rubrique`, `annee`, `mois`, `montantPrevu`. Unicité `(rubrique, annee, mois)`.
 
-### Materiel / CategorieMateriel / Maintenance / IncidentMateriel (MODIFIÉES + org)
-`+organisationId` partout ; `reference`/`numInventaire` uniques **par org**. Materiel conserve `marque`, `modele`, `numSerie`, `dateAchat`, `fournisseur`, `coutAcquisition`, `garantieFin`, `etat`, `statut`, `qrCodeData`, `qrCodeUrl`. Index `(organisationId, statut)`.
+### Materiel / CategorieMateriel / Maintenance / IncidentMateriel (INCHANGÉES)
+Conformes V1. `Materiel` conserve `reference`/`numInventaire` (uniques), `marque`, `modele`, `numSerie`, `dateAchat`, `fournisseur`, `coutAcquisition`, `garantieFin`, `etat`, `statut`, `qrCodeData`, `qrCodeUrl`.
 
-### Dotation (MODIFIÉE + org)
-`+organisationId`, `+signatureHash` (intégrité), `+signedAt`, `+ficheResponsabiliteKey` (PDF). Conserve `materielId`, `jriId`, `responsableId`, `dateRemise`, `etatRemise`, `photosRemise[]`, `signatureUrl`, `observations`, `statut` (EN_COURS/RESTITUE), `dateRetour`, `etatRetour`, `photosRetour[]`, `validateurId`, `montantDegradation`, `observationsRetour`.
+### Dotation (MODIFIÉE — preuve)
+Ajouts : `signatureHash` (intégrité de la signature), `signedAt` (timestamptz), `ficheResponsabiliteKey` (PDF). Conserve `materielId`, `jriId`, `responsableId`, `dateRemise`, `etatRemise`, `photosRemise[]`, `signatureUrl`, `observations`, `statut` (EN_COURS/RESTITUE), `dateRetour`, `etatRetour`, `photosRetour[]`, `validateurId`, `montantDegradation`, `observationsRetour`.
 
 ### BaremeDegradation (NOUVELLE — extériorise `BAREME_DEGRADATION`)
-| id | organisationId | etatDepart | etatRetour | tauxPct Decimal(5,2) |
-Rend le barème configurable par organisation (aujourd'hui en dur dans `calc.ts`).
+| id | etatDepart (EtatMateriel) | etatRetour (EtatMateriel) | tauxPct Decimal(5,2) |
+Rend configurable le barème aujourd'hui codé en dur dans `calc.ts`. Unicité `(etatDepart, etatRetour)`.
 
-### Notification (MODIFIÉE + org)
-`+organisationId`, `+type` (clé d'événement pour dedup/préférences). Conserve `canal`, `titre`, `message`, `lien`, `lu`.
+### Notification (MODIFIÉE)
+Ajout `type` (clé d'événement, pour dedup + préférences). Conserve `canal`, `titre`, `message`, `lien`, `lu`.
 
 ### NotificationPreference (NOUVELLE)
-| userId | type | canaux[] | actif | — préférences par utilisateur/événement.
+| userId (FK) | type | canaux (CanalNotif[]) | actif (bool) | — préférences par utilisateur/événement. Unicité `(userId, type)`.
 
 ### RefreshToken (INCHANGÉE)
-Conserve `token` (unique), `userId`, `expiresAt`, `revoked`. + index cleanup.
+`token` (unique), `userId`, `expiresAt`, `revoked`. Cron de purge des expirés.
 
-### AuditLog (MODIFIÉE + org)
-`+organisationId`. Append-only (pas d'update/delete). Conserve `userId?`, `action`, `entite`, `entiteId?`, `details (jsonb)`, `ip`, `createdAt`. Index `(organisationId, entite, entiteId)`, `(organisationId, createdAt)`.
-
-### Webhook / WebhookDelivery (NOUVELLES — Enterprise)
-Endpoints sortants par organisation + journal de livraison (retries).
+### AuditLog (INCHANGÉE — durcie)
+Append-only (pas d'update/delete). Conserve `userId?`, `action`, `entite`, `entiteId?`, `details (jsonb)`, `ip`, `createdAt`. Index conservés.
 
 ## 6.4 Enums
 
-`Role`(ADMIN,REDACTEUR,JRI,COMPTABLE), `Priorite`(BASSE,NORMALE,HAUTE,URGENTE), `StatutSujet`(ASSIGNE,EN_COURS,LIVRE,VALIDE,REJETE), `TypeElement`(VIDEO,AUDIO,PHOTO,DOCUMENT), `ActionValidation`(VALIDE,REJETE,CORRECTION_DEMANDEE), `StatutFiche`(BROUILLON,GENEREE,PAYEE), `EtatMateriel`(NEUF,BON_ETAT,A_REPARER,HORS_SERVICE,PERDU,VOLE), `StatutMateriel`(DISPONIBLE,AFFECTE,MAINTENANCE,PERDU,VOLE), `StatutDotation`(EN_COURS,RESTITUE), `TypeIncident`(PANNE,PERTE,VOL,DEGRADATION), `CanalNotif`(INTERNE,EMAIL,WHATSAPP,SMS,PUSH), `PlanOrg`(STARTER,PRO,ENTERPRISE).
+`Role`(ADMIN,REDACTEUR,JRI,COMPTABLE), `Priorite`(BASSE,NORMALE,HAUTE,URGENTE), `StatutSujet`(ASSIGNE,EN_COURS,LIVRE,VALIDE,REJETE), `TypeElement`(VIDEO,AUDIO,PHOTO,DOCUMENT), `ActionValidation`(VALIDE,REJETE,CORRECTION_DEMANDEE), `StatutFiche`(BROUILLON,GENEREE,PAYEE), `EtatMateriel`(NEUF,BON_ETAT,A_REPARER,HORS_SERVICE,PERDU,VOLE), `StatutMateriel`(DISPONIBLE,AFFECTE,MAINTENANCE,PERDU,VOLE), `StatutDotation`(EN_COURS,RESTITUE), `TypeIncident`(PANNE,PERTE,VOL,DEGRADATION), `CanalNotif`(INTERNE,EMAIL,WHATSAPP,SMS,PUSH).
 
 ## 6.5 Stratégie d'indexation
 
-- Toujours préfixer par `organisationId` (co-locate + RLS efficace).
-- Index couvrants pour listes paginées triées (`createdAt desc`).
-- GIN sur `searchVector` (FTS) et sur colonnes `jsonb` interrogées.
-- Index partiels pour statuts chauds (ex. `WHERE statut='EN_COURS'`).
+- Index couvrants pour les listes paginées triées (`createdAt desc`).
+- GIN sur `searchVector` (FTS) et sur les colonnes `jsonb` interrogées.
+- Index partiels pour les statuts chauds (ex. `WHERE statut='EN_COURS'`).
 
-## 6.6 Migration V1→V2 (voir DT-01)
+## 6.6 Évolution du schéma (mono-org)
 
-1. Passer `db push` → **Prisma Migrate** (baseline sur le schéma actuel).
-2. Créer `Organisation` par défaut, backfill `organisationId` sur toutes les lignes.
-3. Rendre `organisationId` NOT NULL, activer RLS + policies.
-4. Chiffrer les colonnes PII existantes (IBAN/banque).
-5. Extraire le barème en table ; historiser les taux courants.
+Toutes les évolutions ci-dessus sont **additives** → migrations Prisma sans perte :
+1. Sécurité `User` (2FA + lockout) + `deletedAt`.
+2. Chiffrement PII `JriProfile` (migration de données : chiffrer l'existant).
+3. `searchVector` + trigger FTS sur `Sujet`.
+4. `TauxChange` + backfill des taux courants.
+5. `BaremeDegradation` + seed depuis les constantes `calc.ts`.
+6. `NotificationPreference`, `Notification.type`, `verrouille`/`pdfKey` sur `FichePaiement`, champs preuve `Dotation`.
