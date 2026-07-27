@@ -84,12 +84,22 @@ Tester un upload d'élément sur un sujet → le fichier doit être accessible v
 La prod applique désormais des **migrations versionnées** (`prisma migrate deploy`), plus `db push`.
 
 ### Bascule initiale (une seule fois, base existante issue de `db push`)
-Le schéma est déjà en place → on marque la migration baseline comme **déjà appliquée** (sinon Prisma tenterait de recréer les tables) :
+Le schéma est déjà en place → on marque la migration baseline comme **déjà appliquée** (sinon `migrate deploy` tenterait de recréer les tables et échouerait). Ordre important : **backup → build → resolve → up**.
 ```bash
-cd /opt/ganndal && git pull
-docker compose -f deploy/docker-compose.prod.yml run --rm \
+cd /opt/ganndal
+# 1. backup de sécurité
+docker compose -f deploy/docker-compose.prod.yml exec backup sh /pg-backup.sh || true
+# 2. code + nouvelle image (contient le dossier prisma/migrations)
+git pull
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env build backend
+# 3. marquer la baseline comme appliquée (avant tout migrate deploy)
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env run --rm \
   --entrypoint sh backend -c "npx prisma migrate resolve --applied 00000000000000_init"
+# 4. démarrer (le backend joue `migrate deploy` → aucune migration en attente)
 docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d
+docker compose -f deploy/docker-compose.prod.yml restart nginx
+# 5. vérifier
+docker compose -f deploy/docker-compose.prod.yml run --rm --entrypoint sh backend -c "npx prisma migrate status"
 ```
 Après cette étape, chaque déploiement joue automatiquement `migrate deploy` (dans la commande du conteneur `backend`).
 
