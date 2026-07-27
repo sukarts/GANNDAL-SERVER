@@ -79,6 +79,27 @@ curl -s https://TON-DOMAINE/api/health          # {"status":"ok"}
 Tester un upload d'élément sur un sujet → le fichier doit être accessible via
 `https://TON-DOMAINE/files/ganndal/...`.
 
+## Migrations de schéma (Prisma Migrate)
+
+La prod applique désormais des **migrations versionnées** (`prisma migrate deploy`), plus `db push`.
+
+### Bascule initiale (une seule fois, base existante issue de `db push`)
+Le schéma est déjà en place → on marque la migration baseline comme **déjà appliquée** (sinon Prisma tenterait de recréer les tables) :
+```bash
+cd /opt/ganndal && git pull
+docker compose -f deploy/docker-compose.prod.yml run --rm \
+  --entrypoint sh backend -c "npx prisma migrate resolve --applied 00000000000000_init"
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d
+```
+Après cette étape, chaque déploiement joue automatiquement `migrate deploy` (dans la commande du conteneur `backend`).
+
+### Créer une nouvelle migration (en dev, jamais en prod)
+```bash
+cd backend && npx prisma migrate dev --name description_du_changement
+git add prisma/migrations && git commit && git push
+```
+> ⚠️ Ne jamais revenir à `prisma db push` en prod : perte de l'historique et risque de données.
+
 ## Mises à jour
 ```bash
 cd /opt/ganndal && git pull

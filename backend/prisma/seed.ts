@@ -3,40 +3,52 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+const isProd = process.env.NODE_ENV === 'production';
+
 async function main() {
   const hash = (p: string) => bcrypt.hash(p, 10);
+
+  // En production : mot de passe admin OBLIGATOIRE via env (jamais de valeur démo faible).
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? (isProd ? '' : 'Admin123!');
+  if (isProd && !adminPassword) {
+    throw new Error('SEED_ADMIN_PASSWORD requis en production (aucun mot de passe démo autorisé).');
+  }
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@ganndal.media' },
     update: {},
-    create: { email: 'admin@ganndal.media', passwordHash: await hash('Admin123!'), nom: 'Diallo', prenom: 'Awa', role: 'ADMIN' },
+    create: { email: 'admin@ganndal.media', passwordHash: await hash(adminPassword), nom: 'Diallo', prenom: 'Awa', role: 'ADMIN' },
   });
 
-  await prisma.user.upsert({
-    where: { email: 'redacteur@ganndal.media' },
-    update: {},
-    create: { email: 'redacteur@ganndal.media', passwordHash: await hash('Redac123!'), nom: 'Ndiaye', prenom: 'Moussa', role: 'REDACTEUR' },
-  });
+  // Comptes de démonstration : uniquement hors production.
+  let jri = admin;
+  if (!isProd) {
+    await prisma.user.upsert({
+      where: { email: 'redacteur@ganndal.media' },
+      update: {},
+      create: { email: 'redacteur@ganndal.media', passwordHash: await hash('Redac123!'), nom: 'Ndiaye', prenom: 'Moussa', role: 'REDACTEUR' },
+    });
 
-  await prisma.user.upsert({
-    where: { email: 'comptable@ganndal.media' },
-    update: {},
-    create: { email: 'comptable@ganndal.media', passwordHash: await hash('Compta123!'), nom: 'Sow', prenom: 'Fatou', role: 'COMPTABLE' },
-  });
+    await prisma.user.upsert({
+      where: { email: 'comptable@ganndal.media' },
+      update: {},
+      create: { email: 'comptable@ganndal.media', passwordHash: await hash('Compta123!'), nom: 'Sow', prenom: 'Fatou', role: 'COMPTABLE' },
+    });
 
-  const jri = await prisma.user.upsert({
-    where: { email: 'jri@ganndal.media' },
-    update: {},
-    create: {
-      email: 'jri@ganndal.media',
-      passwordHash: await hash('Jri123!'),
-      nom: 'Ba',
-      prenom: 'Ousmane',
-      telephone: '+221770000000',
-      role: 'JRI',
-      jriProfile: { create: { tarifParSujet: 25000, tarifParMinute: 1500, specialite: 'Reportage terrain' } },
-    },
-  });
+    jri = await prisma.user.upsert({
+      where: { email: 'jri@ganndal.media' },
+      update: {},
+      create: {
+        email: 'jri@ganndal.media',
+        passwordHash: await hash('Jri123!'),
+        nom: 'Ba',
+        prenom: 'Ousmane',
+        telephone: '+221770000000',
+        role: 'JRI',
+        jriProfile: { create: { tarifParSujet: 25000, tarifParMinute: 1500, specialite: 'Reportage terrain' } },
+      },
+    });
+  }
 
   // Devises (base = GNF). Taux indicatifs — à ajuster par l'admin.
   const devises = [
@@ -59,42 +71,46 @@ async function main() {
   for (const nom of categories) {
     await prisma.categorieMateriel.upsert({ where: { nom }, update: {}, create: { nom } });
   }
-  const camera = await prisma.categorieMateriel.findUnique({ where: { nom: 'Caméras' } });
+  // Données de démonstration (matériel + sujet) : uniquement hors production.
+  if (!isProd) {
+    const camera = await prisma.categorieMateriel.findUnique({ where: { nom: 'Caméras' } });
+    await prisma.materiel.upsert({
+      where: { reference: 'CAM-001' },
+      update: {},
+      create: {
+        reference: 'CAM-001',
+        numInventaire: 'INV-2026-0001',
+        categorieId: camera!.id,
+        marque: 'Sony',
+        modele: 'FX3',
+        numSerie: 'SN123456',
+        coutAcquisition: 2500000,
+        etat: 'NEUF',
+        statut: 'DISPONIBLE',
+      },
+    });
 
-  // Matériel de démo
-  await prisma.materiel.upsert({
-    where: { reference: 'CAM-001' },
-    update: {},
-    create: {
-      reference: 'CAM-001',
-      numInventaire: 'INV-2026-0001',
-      categorieId: camera!.id,
-      marque: 'Sony',
-      modele: 'FX3',
-      numSerie: 'SN123456',
-      coutAcquisition: 2500000,
-      etat: 'NEUF',
-      statut: 'DISPONIBLE',
-    },
-  });
+    await prisma.sujet.upsert({
+      where: { reference: 'SUJ-2026-0001' },
+      update: {},
+      create: {
+        reference: 'SUJ-2026-0001',
+        titre: 'Reportage marché central',
+        description: 'Sujet de 3 minutes sur le marché central de Dakar',
+        jriId: jri.id,
+        createdById: admin.id,
+        priorite: 'HAUTE',
+        statut: 'ASSIGNE',
+        dureeMinutes: 3,
+      },
+    });
+  }
 
-  // Sujet de démo
-  await prisma.sujet.upsert({
-    where: { reference: 'SUJ-2026-0001' },
-    update: {},
-    create: {
-      reference: 'SUJ-2026-0001',
-      titre: 'Reportage marché central',
-      description: 'Sujet de 3 minutes sur le marché central de Dakar',
-      jriId: jri.id,
-      createdById: admin.id,
-      priorite: 'HAUTE',
-      statut: 'ASSIGNE',
-      dureeMinutes: 3,
-    },
-  });
-
-  console.log('✅ Seed terminé. Comptes: admin/redacteur/comptable/jri @ganndal.media');
+  console.log(
+    isProd
+      ? '✅ Seed production terminé (admin + devises + catégories, sans comptes démo).'
+      : '✅ Seed terminé. Comptes démo: admin/redacteur/comptable/jri @ganndal.media',
+  );
 }
 
 main()

@@ -59,10 +59,10 @@ services:
     env_file: .env
     depends_on: [postgres, minio]
     networks: [ganndal]
-    # Applique le schéma (db push, pas de migrations) puis démarre.
-    # --accept-data-loss : autorise les changements additifs (ex: nouvel index
-    # unique sur colonne nullable) sans blocage. Pas de migrations destructives ici.
-    command: sh -c "npx prisma db push --skip-generate --accept-data-loss && node dist/server.js"
+    # Applique les migrations versionnées (Prisma Migrate) puis démarre.
+    # Migrations générées et revues en amont — pas de mutation de schéma implicite.
+    # 1re bascule depuis db push : voir docs/DEPLOY_VPS.md (baseline `migrate resolve`).
+    command: sh -c "npx prisma migrate deploy && node dist/server.js"
 
   frontend:
     build:
