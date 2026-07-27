@@ -110,11 +110,27 @@ git add prisma/migrations && git commit && git push
 ```
 > ⚠️ Ne jamais revenir à `prisma db push` en prod : perte de l'historique et risque de données.
 
-## Mises à jour
+## ⚠️ Build sur ce VPS (contournement DNS obligatoire)
+
+Le résolveur DNS de l'hôte est le stub systemd-resolved (`/etc/resolv.conf` → `nameserver 127.0.0.53`).
+Un conteneur en réseau par défaut **ne peut pas joindre `127.0.0.53`** → `npm`/`prisma generate`
+échouent avec `EAI_AGAIN getaddrinfo registry.npmjs.org`. `docker compose build` (BuildKit) est touché.
+
+**Toujours builder le backend en réseau hôte** (hérite du DNS de l'hôte) :
 ```bash
 cd /opt/ganndal && git pull
-docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d --build
+DOCKER_BUILDKIT=0 docker build --network=host -t deploy-backend ./backend
+DOCKER_BUILDKIT=0 docker build --network=host -t deploy-frontend \
+  --build-arg NEXT_PUBLIC_API_URL=/api ./frontend
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d   # sans --build
+docker compose -f deploy/docker-compose.prod.yml restart nginx
 ```
+> Ne pas utiliser `up -d --build` ni `docker compose build` ici : ils passent par BuildKit et cassent sur le DNS.
+> `deploy-backend` / `deploy-frontend` = noms d'image attendus par compose (projet `deploy`).
+
+## Mises à jour
+
+Voir le bloc ci-dessus (build réseau hôte). En résumé : `git pull` → `docker build --network=host` (backend + frontend si changé) → `up -d` → `restart nginx`. Les migrations s'appliquent seules au démarrage du backend (`migrate deploy`).
 
 ## Sauvegarde base de données (automatique)
 Le service `backup` du compose dump Postgres au démarrage puis toutes les 24 h vers
