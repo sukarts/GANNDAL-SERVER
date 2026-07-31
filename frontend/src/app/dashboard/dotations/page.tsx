@@ -6,6 +6,7 @@ import Modal from '@/components/Modal';
 import SignaturePad, { type SignatureHandle } from '@/components/SignaturePad';
 import { useLang } from '@/lib/i18n';
 import EmptyState from '@/components/EmptyState';
+import { SkeletonRows } from '@/components/Skeleton';
 
 interface Dotation {
   id: string; dateRemise: string; statut: string; etatRemise: string;
@@ -21,6 +22,7 @@ const LIMIT = 25;
 export default function DotationsPage() {
   const [list, setList] = useState<Dotation[]>([]);
   const [page, setPage] = useState(1);
+  const [chargement, setChargement] = useState(true);
   const [total, setTotal] = useState(0);
   const [materiels, setMateriels] = useState<Materiel[]>([]);
   const [jris, setJris] = useState<Jri[]>([]);
@@ -62,9 +64,11 @@ export default function DotationsPage() {
   }
 
   function load() {
+    setChargement(true);
     apiPaged<Dotation>('/dotations', page, LIMIT)
       .then((r) => { setList(r.items); setTotal(r.total); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setChargement(false));
   }
   useEffect(load, [page]);
 
@@ -113,6 +117,7 @@ export default function DotationsPage() {
           <thead className="bg-surface-2 text-left text-muted">
             <tr><th className="p-3">{t('Matériel', 'Equipment')}</th><th className="p-3">{t('Catégorie', 'Category')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Remise', 'Handed over')}</th><th className="p-3">{t('État remise', 'Condition')}</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
           </thead>
+          {chargement ? <SkeletonRows rows={5} cols={7} /> : (
           <tbody>
             {list.map((d) => (
               <tr key={d.id} className="border-t">
@@ -135,6 +140,7 @@ export default function DotationsPage() {
               </td></tr>
             )}
           </tbody>
+          )}
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>

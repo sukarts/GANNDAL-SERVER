@@ -6,6 +6,7 @@ import { useLang } from '@/lib/i18n';
 import Modal from '@/components/Modal';
 import Pagination from '@/components/Pagination';
 import EmptyState from '@/components/EmptyState';
+import { SkeletonRows } from '@/components/Skeleton';
 
 interface Sujet {
   id: string;
@@ -32,6 +33,7 @@ const LIMIT = 25;
 export default function SujetsPage() {
   const [sujets, setSujets] = useState<Sujet[]>([]);
   const [page, setPage] = useState(1);
+  const [chargement, setChargement] = useState(true);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
@@ -43,9 +45,11 @@ export default function SujetsPage() {
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
   function load() {
+    setChargement(true);
     apiPaged<Sujet>('/sujets', page, LIMIT)
       .then((r) => { setSujets(r.items); setTotal(r.total); })
-      .catch((e) => setError((e as Error).message));
+      .catch((e) => setError((e as Error).message))
+      .finally(() => setChargement(false));
   }
   useEffect(load, [page]);
 
@@ -101,6 +105,7 @@ export default function SujetsPage() {
               <th className="p-3">{t('Priorité', 'Priority')}</th><th className="p-3">{t('Échéance', 'Deadline')}</th><th className="p-3">{t('Statut', 'Status')}</th>
             </tr>
           </thead>
+          {chargement ? <SkeletonRows rows={5} cols={6} /> : (
           <tbody>
             {sujets.map((s) => (
               <tr key={s.id} className="border-t">
@@ -120,6 +125,7 @@ export default function SujetsPage() {
               </td></tr>
             )}
           </tbody>
+          )}
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>

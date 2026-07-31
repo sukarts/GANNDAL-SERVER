@@ -7,6 +7,7 @@ import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
 import PieParcMateriel from '@/components/PieParcMateriel';
 import EmptyState from '@/components/EmptyState';
+import { SkeletonRows } from '@/components/Skeleton';
 
 interface Inventaire {
   total: number; disponible: number; affecte: number;
@@ -35,6 +36,7 @@ export default function MaterielPage() {
   const [inv, setInv] = useState<Inventaire | null>(null);
   const [list, setList] = useState<Materiel[]>([]);
   const [page, setPage] = useState(1);
+  const [chargement, setChargement] = useState(true);
   const [total, setTotal] = useState(0);
   const [cats, setCats] = useState<Categorie[]>([]);
   const [open, setOpen] = useState(false);
@@ -45,10 +47,12 @@ export default function MaterielPage() {
   const peutCreer = user?.role === 'ADMIN' || user?.role === 'REDACTEUR';
 
   function load() {
+    setChargement(true);
     api<Inventaire>('/materiel/inventaire').then(setInv).catch(() => {});
     apiPaged<Materiel>('/materiel', page, LIMIT)
       .then((r) => { setList(r.items); setTotal(r.total); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setChargement(false));
   }
   useEffect(load, [page]);
   useEffect(() => {
@@ -104,6 +108,7 @@ export default function MaterielPage() {
               <th className="p-3">État</th><th className="p-3">Statut</th>
             </tr>
           </thead>
+          {chargement ? <SkeletonRows rows={5} cols={6} /> : (
           <tbody>
             {list.map((m) => (
               <tr key={m.id} className="border-t">
@@ -123,6 +128,7 @@ export default function MaterielPage() {
               </td></tr>
             )}
           </tbody>
+          )}
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
