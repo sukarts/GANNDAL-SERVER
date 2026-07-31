@@ -23,8 +23,8 @@ const empty = { reference: '', numInventaire: '', categorieId: '', marque: '', m
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="text-xs text-gray-500">{label}</div>
+    <div className="bg-surface rounded-xl p-4 shadow-sm">
+      <div className="text-xs text-muted">{label}</div>
       <div className="text-2xl font-bold text-brand">{value}</div>
     </div>
   );
@@ -89,14 +89,14 @@ export default function MaterielPage() {
         </div>
       )}
       {inv && inv.total > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6 max-w-md">
+        <div className="bg-surface rounded-xl shadow-sm p-4 mb-6 max-w-md">
           <h2 className="font-semibold text-sm mb-1">Répartition du parc</h2>
           <PieParcMateriel inv={inv} />
         </div>
       )}
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-surface-2 text-left text-muted">
             <tr>
               <th className="p-3">Réf.</th><th className="p-3">N° inventaire</th>
               <th className="p-3">Catégorie</th><th className="p-3">Marque/Modèle</th>
@@ -116,7 +116,7 @@ export default function MaterielPage() {
                 <td className="p-3">{m.statut}</td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>Aucun équipement</td></tr>}
+            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={6}>Aucun équipement</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />

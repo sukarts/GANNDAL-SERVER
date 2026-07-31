@@ -14,8 +14,8 @@ const now = new Date();
 
 function Kpi({ label, value, color = 'text-brand' }: { label: string; value: string; color?: string }) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm">
-      <div className="text-xs text-gray-500">{label}</div>
+    <div className="bg-surface rounded-xl p-4 shadow-sm">
+      <div className="text-xs text-muted">{label}</div>
       <div className={`text-2xl font-bold ${color}`}>{value}</div>
     </div>
   );
@@ -45,7 +45,7 @@ export default function FinancePage() {
             <Kpi label="En attente" value={formatMoney(d.attente)} color="text-amber-600" />
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <div className="bg-surface rounded-xl shadow-sm p-4 mb-6">
             <h2 className="font-semibold text-sm mb-3">Piges par mois (payé / en attente)</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={d.parMois.map((m) => ({ ...m, label: MOIS[m.mois - 1] }))} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
@@ -62,14 +62,14 @@ export default function FinancePage() {
           </div>
 
           <h2 className="font-semibold mb-2">Top JRI (rémunération {d.annee})</h2>
-          <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+          <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">#</th><th className="p-3">JRI</th><th className="p-3">Rémunération</th></tr></thead>
+              <thead className="bg-surface-2 text-left text-muted"><tr><th className="p-3">#</th><th className="p-3">JRI</th><th className="p-3">Rémunération</th></tr></thead>
               <tbody>
                 {d.topJri.map((j, i) => (
                   <tr key={j.jriId} className="border-t"><td className="p-3">{i + 1}</td><td className="p-3">{j.nom}</td><td className="p-3 font-medium">{formatMoney(j.montant)}</td></tr>
                 ))}
-                {d.topJri.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={3}>Aucune donnée</td></tr>}
+                {d.topJri.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={3}>Aucune donnée</td></tr>}
               </tbody>
             </table>
           </div>

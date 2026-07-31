@@ -5,6 +5,8 @@ import Pagination from '@/components/Pagination';
 import { formatMoney } from '@/lib/money';
 import { useLang } from '@/lib/i18n';
 import Modal from '@/components/Modal';
+import MoneyMono from '@/components/MoneyMono';
+import StatutBadge from '@/components/StatutBadge';
 
 interface Fiche {
   id: string; reference: string; annee: number; mois: number;
@@ -14,7 +16,7 @@ interface Fiche {
 }
 interface Jri { id: string; nom: string; prenom: string }
 
-const INPUT = 'w-full border rounded px-3 py-2 text-sm';
+const INPUT = 'w-full border border-line rounded px-3 py-2 text-sm';
 const LIMIT = 25;
 const now = new Date();
 
@@ -108,34 +110,33 @@ export default function PaiementsPage() {
         <div className="flex items-center gap-2">
           {peutCalculer && (
             <>
-              <input type="number" className="border rounded px-2 py-1 text-sm w-20" value={periode.annee} onChange={(e) => setPeriode({ ...periode, annee: e.target.value })} />
-              <input type="number" min={1} max={12} className="border rounded px-2 py-1 text-sm w-16" value={periode.mois} onChange={(e) => setPeriode({ ...periode, mois: e.target.value })} />
-              <button onClick={bordereau} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Bordereau PDF</button>
-              <button onClick={exportExcel} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Export mois</button>
-              <button onClick={exportComptable} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Compta {periode.annee}</button>
+              <input type="number" className="border border-line rounded px-2 py-1 text-sm w-20 tabular-nums" value={periode.annee} onChange={(e) => setPeriode({ ...periode, annee: e.target.value })} />
+              <input type="number" min={1} max={12} className="border border-line rounded px-2 py-1 text-sm w-16 tabular-nums" value={periode.mois} onChange={(e) => setPeriode({ ...periode, mois: e.target.value })} />
+              <button onClick={bordereau} className="border border-line rounded px-3 py-2 text-sm hover:bg-surface-2">Bordereau PDF</button>
+              <button onClick={exportExcel} className="border border-line rounded px-3 py-2 text-sm hover:bg-surface-2">Export mois</button>
+              <button onClick={exportComptable} className="border border-line rounded px-3 py-2 text-sm hover:bg-surface-2">Compta {periode.annee}</button>
             </>
           )}
           {peutCalculer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">Calculer une pige</button>}
         </div>
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
-            <tr><th className="p-3">{t('Référence', 'Reference')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Période', 'Period')}</th><th className="p-3">{t('Sujets', 'Items')}</th><th className="p-3">Minutes</th><th className="p-3">Total</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
+          <thead className="bg-surface-2 text-left text-muted">
+            <tr><th className="p-3">{t('Référence', 'Reference')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Période', 'Period')}</th><th className="p-3 text-right">{t('Sujets', 'Items')}</th><th className="p-3 text-right">Minutes</th><th className="p-3 text-right">Total</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
           </thead>
           <tbody>
             {list.map((f) => (
-              <tr key={f.id} className="border-t">
+              <tr key={f.id} className="border-t border-line">
                 <td className="p-3 font-mono text-xs">{f.reference}</td>
                 <td className="p-3">{f.jri ? `${f.jri.prenom} ${f.jri.nom}` : '—'}</td>
-                <td className="p-3">{String(f.mois).padStart(2, '0')}/{f.annee}</td>
-                <td className="p-3">{f.nbSujets}</td>
-                <td className="p-3">{f.totalMinutes}</td>
-                <td className="p-3 font-medium">{formatMoney(Number(f.montantTotal))}</td>
+                <td className="p-3 tabular-nums">{String(f.mois).padStart(2, '0')}/{f.annee}</td>
+                <td className="p-3 text-right tabular-nums">{f.nbSujets}</td>
+                <td className="p-3 text-right tabular-nums">{f.totalMinutes}</td>
+                <td className="p-3 text-right font-medium"><MoneyMono value={Number(f.montantTotal)} /></td>
                 <td className="p-3">
-                  {f.statut === 'PAYEE'
-                    ? <span className="text-green-700">{t('Payée', 'Paid')}{f.referencePaiement ? ` · ${f.referencePaiement}` : ''}</span>
-                    : f.statut}
+                  <StatutBadge kind="fiche" value={f.statut} />
+                  {f.statut === 'PAYEE' && f.referencePaiement ? <span className="text-muted text-xs ml-1">· {f.referencePaiement}</span> : null}
                 </td>
                 <td className="p-3 text-right whitespace-nowrap">
                   <button onClick={() => genererPdf(f.id)} className="text-xs underline mr-3">PDF</button>
@@ -143,7 +144,7 @@ export default function PaiementsPage() {
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={8}>{t('Aucune fiche', 'No slips')}</td></tr>}
+            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={8}>{t('Aucune fiche', 'No slips')}</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
@@ -151,7 +152,7 @@ export default function PaiementsPage() {
 
       <Modal open={!!payFiche} title={`Valider le paiement — ${payFiche?.reference ?? ''}`} onClose={() => setPayFiche(null)}>
         <form onSubmit={confirmerPaiement} className="space-y-3">
-          <p className="text-sm text-gray-600">Montant : <b>{payFiche && formatMoney(Number(payFiche.montantTotal))}</b></p>
+          <p className="text-sm text-muted">Montant : <b className="text-content">{payFiche && <MoneyMono value={Number(payFiche.montantTotal)} />}</b></p>
           <label className="text-sm block">Mode de paiement
             <select className={INPUT} value={payForm.mode} onChange={(e) => setPayForm({ ...payForm, mode: e.target.value })}>
               <option>Virement</option><option>Western Union</option><option>MoneyGram</option><option>Wave</option><option>Espèces</option><option>Autre</option>
@@ -178,7 +179,7 @@ export default function PaiementsPage() {
             <label className="flex-1 text-sm">Bonus (GNF)<input type="number" min={0} className={INPUT} value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} /></label>
             <label className="flex-1 text-sm">Pénalités (GNF)<input type="number" min={0} className={INPUT} value={form.penalites} onChange={(e) => setForm({ ...form, penalites: e.target.value })} /></label>
           </div>
-          <p className="text-xs text-gray-400">Base = sujets validés du mois × tarif/sujet + minutes × tarif/minute.</p>
+          <p className="text-xs text-muted">Base = sujets validés du mois × tarif/sujet + minutes × tarif/minute.</p>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Calcul…' : 'Générer la fiche'}
           </button>

@@ -59,7 +59,7 @@ const SignaturePad = forwardRef<SignatureHandle>(function SignaturePad(_props, r
       ref={canvasRef}
       width={440}
       height={140}
-      className="border rounded bg-white touch-none w-full"
+      className="border rounded bg-surface touch-none w-full"
       style={{ touchAction: 'none' }}
     />
   );

@@ -9,7 +9,7 @@ export default function LangSelector() {
         <button
           key={l}
           onClick={() => setLang(l)}
-          className={`px-2 py-1 uppercase ${lang === l ? 'bg-brand text-white' : 'bg-white text-gray-600'}`}
+          className={`px-2 py-1 uppercase ${lang === l ? 'bg-brand text-white' : 'bg-surface text-gray-600'}`}
         >
           {l}
         </button>

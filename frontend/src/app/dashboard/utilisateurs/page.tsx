@@ -88,7 +88,7 @@ export default function UtilisateursPage() {
             <option value="">Tous les rôles</option>
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <button onClick={() => { setError(''); setInviteOpen(true); }} className="border rounded px-3 py-2 text-sm hover:bg-gray-50">Inviter par email</button>
+          <button onClick={() => { setError(''); setInviteOpen(true); }} className="border rounded px-3 py-2 text-sm hover:bg-surface-2">Inviter par email</button>
           <button onClick={() => { setForm(emptyCreate); setError(''); setOpen(true); }} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvel utilisateur</button>
         </div>
       </div>
@@ -101,16 +101,16 @@ export default function UtilisateursPage() {
             <button onClick={() => setLienInvit('')} className="text-green-700 text-xs underline">Fermer</button>
           </div>
           <div className="flex gap-2">
-            <input readOnly value={lienInvit} className="flex-1 border rounded px-2 py-1 text-xs bg-white" onFocus={(e) => e.target.select()} />
+            <input readOnly value={lienInvit} className="flex-1 border rounded px-2 py-1 text-xs bg-surface" onFocus={(e) => e.target.select()} />
             <button onClick={() => { navigator.clipboard.writeText(lienInvit); }} className="bg-brand text-white rounded px-3 py-1 text-xs">Copier</button>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Un email a aussi été tenté. Si l’utilisateur ne le reçoit pas, envoyez-lui ce lien (WhatsApp, etc.).</p>
+          <p className="text-xs text-muted mt-2">Un email a aussi été tenté. Si l’utilisateur ne le reçoit pas, envoyez-lui ce lien (WhatsApp, etc.).</p>
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-surface-2 text-left text-muted">
             <tr><th className="p-3">Nom</th><th className="p-3">Email</th><th className="p-3">Téléphone</th><th className="p-3">Rôle</th><th className="p-3">Actif</th><th className="p-3"></th></tr>
           </thead>
           <tbody>
@@ -125,11 +125,11 @@ export default function UtilisateursPage() {
                 </td>
                 <td className="p-3 text-right whitespace-nowrap">
                   <button onClick={() => { setError(''); setEdit(u); }} className="text-xs underline mr-3">Éditer</button>
-                  <button onClick={() => resetPwd(u)} className="text-xs underline text-gray-500">Reset MDP</button>
+                  <button onClick={() => resetPwd(u)} className="text-xs underline text-muted">Reset MDP</button>
                 </td>
               </tr>
             ))}
-            {visibles.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>Aucun utilisateur</td></tr>}
+            {visibles.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={6}>Aucun utilisateur</td></tr>}
           </tbody>
         </table>
       </div>
@@ -147,7 +147,7 @@ export default function UtilisateursPage() {
           <select className={INPUT} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <p className="text-xs text-gray-400">Pour un JRI, les tarifs se règlent ensuite sur sa fiche.</p>
+          <p className="text-xs text-muted">Pour un JRI, les tarifs se règlent ensuite sur sa fiche.</p>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Création…' : 'Créer'}</button>
         </form>
       </Modal>
@@ -164,7 +164,7 @@ export default function UtilisateursPage() {
           <select className={INPUT} value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value })}>
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
-          <p className="text-xs text-gray-400">L'utilisateur reçoit un lien pour définir son mot de passe (valable 7 jours).</p>
+          <p className="text-xs text-muted">L'utilisateur reçoit un lien pour définir son mot de passe (valable 7 jours).</p>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Envoi…' : 'Envoyer l\'invitation'}</button>
         </form>
       </Modal>

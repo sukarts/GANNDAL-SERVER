@@ -54,15 +54,15 @@ export default function PlanningPage() {
         draggable={peutDeplacer}
         onDragStart={() => setDrag(s.id)}
         onDragEnd={() => setDrag(null)}
-        className="block bg-white rounded-lg border p-2 mb-2 text-sm shadow-sm hover:shadow cursor-pointer"
+        className="block bg-surface rounded-lg border p-2 mb-2 text-sm shadow-sm hover:shadow cursor-pointer"
       >
         <div className="flex items-center gap-2 mb-1">
           <span className={`w-2 h-2 rounded-full ${PRIO_DOT[s.priorite] ?? 'bg-gray-300'}`} />
-          <span className="font-mono text-[10px] text-gray-400">{s.reference}</span>
+          <span className="font-mono text-[10px] text-muted">{s.reference}</span>
           {s.rubrique && <span className="ml-auto text-[10px] bg-gray-100 rounded px-1.5 py-0.5">{s.rubrique}</span>}
         </div>
         <div className="font-medium leading-tight">{s.titre}</div>
-        <div className="text-xs text-gray-500 mt-1 flex justify-between">
+        <div className="text-xs text-muted mt-1 flex justify-between">
           <span>{s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'}</span>
           {s.dateLimite && <span className={enRetard ? 'text-red-600 font-medium' : ''}>{new Date(s.dateLimite).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}</span>}
         </div>
@@ -87,8 +87,8 @@ export default function PlanningPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{t('Planning éditorial', 'Editorial planning')}</h1>
         <div className="flex rounded-lg border overflow-hidden text-sm">
-          <button onClick={() => setVue('kanban')} className={`px-3 py-1.5 ${vue === 'kanban' ? 'bg-brand text-white' : 'bg-white'}`}>Kanban</button>
-          <button onClick={() => setVue('calendrier')} className={`px-3 py-1.5 ${vue === 'calendrier' ? 'bg-brand text-white' : 'bg-white'}`}>{t('Calendrier', 'Calendar')}</button>
+          <button onClick={() => setVue('kanban')} className={`px-3 py-1.5 ${vue === 'kanban' ? 'bg-brand text-white' : 'bg-surface'}`}>Kanban</button>
+          <button onClick={() => setVue('calendrier')} className={`px-3 py-1.5 ${vue === 'calendrier' ? 'bg-brand text-white' : 'bg-surface'}`}>{t('Calendrier', 'Calendar')}</button>
         </div>
       </div>
 
@@ -101,11 +101,11 @@ export default function PlanningPage() {
                 key={c.statut}
                 onDragOver={(e) => { if (peutDeplacer) e.preventDefault(); }}
                 onDrop={() => { if (drag) deplacer(drag, c.statut); setDrag(null); }}
-                className={`bg-gray-50 rounded-xl p-2 border-t-4 ${c.color} min-h-[120px]`}
+                className={`bg-surface-2 rounded-xl p-2 border-t-4 ${c.color} min-h-[120px]`}
               >
                 <div className="flex items-center justify-between px-1 mb-2">
                   <span className="text-sm font-medium">{t(c.label, c.en)}</span>
-                  <span className="text-xs text-gray-400">{items.length}</span>
+                  <span className="text-xs text-muted">{items.length}</span>
                 </div>
                 {items.map((s) => <Carte key={s.id} s={s} />)}
               </div>
@@ -113,7 +113,7 @@ export default function PlanningPage() {
           })}
         </div>
       )}
-      {vue === 'kanban' && peutDeplacer && <p className="text-xs text-gray-400 mt-3">{t('Glissez-déposez une carte pour changer son statut.', 'Drag and drop a card to change its status.')}</p>}
+      {vue === 'kanban' && peutDeplacer && <p className="text-xs text-muted mt-3">{t('Glissez-déposez une carte pour changer son statut.', 'Drag and drop a card to change its status.')}</p>}
 
       {vue === 'calendrier' && (
         <div>
@@ -124,11 +124,11 @@ export default function PlanningPage() {
           </div>
           <div className="grid grid-cols-7 gap-1 text-xs">
             {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((j) => (
-              <div key={j} className="text-center text-gray-500 font-medium py-1">{j}</div>
+              <div key={j} className="text-center text-muted font-medium py-1">{j}</div>
             ))}
             {cellules.map((j, i) => (
-              <div key={i} className={`min-h-[84px] rounded-lg p-1 ${j ? 'bg-white border' : ''}`}>
-                {j && <div className="text-[11px] text-gray-400 mb-1">{j}</div>}
+              <div key={i} className={`min-h-[84px] rounded-lg p-1 ${j ? 'bg-surface border' : ''}`}>
+                {j && <div className="text-[11px] text-muted mb-1">{j}</div>}
                 {j && sujetsDuJour(j).map((s) => {
                   const enRetard = s.statut !== 'VALIDE' && new Date(s.dateLimite!) < new Date();
                   return (

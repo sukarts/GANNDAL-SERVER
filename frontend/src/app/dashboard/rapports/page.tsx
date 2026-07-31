@@ -38,29 +38,29 @@ export default function RapportsPage() {
             <option value="semaine">Hebdomadaire</option>
             <option value="mois">Mensuel</option>
           </select>
-          <button onClick={() => window.print()} className="border rounded px-3 py-1 text-sm hover:bg-gray-50">Imprimer / PDF</button>
+          <button onClick={() => window.print()} className="border rounded px-3 py-1 text-sm hover:bg-surface-2">Imprimer / PDF</button>
         </div>
       </div>
 
       {act && (
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Créés</div><div className="text-2xl font-bold">{act.crees}</div></div>
-          <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Livrés</div><div className="text-2xl font-bold">{act.livres}</div></div>
-          <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Validés</div><div className="text-2xl font-bold">{act.valides}</div></div>
-          <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Rejetés</div><div className="text-2xl font-bold">{act.rejetes}</div></div>
+          <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Créés</div><div className="text-2xl font-bold">{act.crees}</div></div>
+          <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Livrés</div><div className="text-2xl font-bold">{act.livres}</div></div>
+          <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Validés</div><div className="text-2xl font-bold">{act.valides}</div></div>
+          <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Rejetés</div><div className="text-2xl font-bold">{act.rejetes}</div></div>
         </div>
       )}
 
       {sla && (
         <div className="mb-6">
           <h2 className="font-semibold mb-2">Respect des délais (SLA)</h2>
-          <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="bg-surface rounded-xl shadow-sm p-4">
             <div className="mb-3 text-sm">
               Sujets <b>en retard</b> (échéance dépassée, non livrés) :{' '}
               <span className={sla.enRetard > 0 ? 'text-red-600 font-bold text-lg' : 'text-green-700 font-bold'}>{sla.enRetard}</span>
             </div>
             <table className="w-full text-sm">
-              <thead className="text-left text-gray-500"><tr><th className="py-1">JRI</th><th className="py-1">À l’heure</th><th className="py-1">En retard</th><th className="py-1">Taux</th></tr></thead>
+              <thead className="text-left text-muted"><tr><th className="py-1">JRI</th><th className="py-1">À l’heure</th><th className="py-1">En retard</th><th className="py-1">Taux</th></tr></thead>
               <tbody>
                 {sla.respectParJri.map((r) => (
                   <tr key={r.jriId} className="border-t">
@@ -72,7 +72,7 @@ export default function RapportsPage() {
                     </td>
                   </tr>
                 ))}
-                {sla.respectParJri.length === 0 && <tr><td className="py-3 text-gray-400" colSpan={4}>Pas encore de livraison mesurable.</td></tr>}
+                {sla.respectParJri.length === 0 && <tr><td className="py-3 text-muted" colSpan={4}>Pas encore de livraison mesurable.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -80,7 +80,7 @@ export default function RapportsPage() {
       )}
 
       {evo && evo.parMois.some((m) => m.montant > 0) && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="bg-surface rounded-xl shadow-sm p-4 mb-6">
           <h2 className="font-semibold text-sm mb-3">Évolution des piges — {evo.annee}</h2>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={evo.parMois.map((m) => ({ ...m, label: MOIS[m.mois - 1] }))} margin={{ top: 8, right: 12, left: 4, bottom: 0 }}>
@@ -100,7 +100,7 @@ export default function RapportsPage() {
 
       <h2 className="font-semibold mb-2">Classement des JRI (sujets validés)</h2>
       {classement.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+        <div className="bg-surface rounded-xl shadow-sm p-4 mb-4">
           <ResponsiveContainer width="100%" height={Math.max(120, classement.slice(0, 8).length * 36)}>
             <BarChart data={classement.slice(0, 8)} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
@@ -112,14 +112,14 @@ export default function RapportsPage() {
           </ResponsiveContainer>
         </div>
       )}
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">#</th><th className="p-3">JRI</th><th className="p-3">Sujets</th><th className="p-3">Minutes</th></tr></thead>
+          <thead className="bg-surface-2 text-left text-muted"><tr><th className="p-3">#</th><th className="p-3">JRI</th><th className="p-3">Sujets</th><th className="p-3">Minutes</th></tr></thead>
           <tbody>
             {classement.map((c, i) => (
               <tr key={c.jriId} className="border-t"><td className="p-3">{i + 1}</td><td className="p-3">{c.nom}</td><td className="p-3">{c.sujets}</td><td className="p-3">{c.minutes}</td></tr>
             ))}
-            {classement.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={4}>Aucune donnée</td></tr>}
+            {classement.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={4}>Aucune donnée</td></tr>}
           </tbody>
         </table>
       </div>

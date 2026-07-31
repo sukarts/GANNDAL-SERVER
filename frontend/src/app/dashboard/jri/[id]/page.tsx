@@ -68,17 +68,17 @@ export default function JriDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/jri" className="text-sm text-gray-500 hover:underline">← JRI</Link>
+      <Link href="/dashboard/jri" className="text-sm text-muted hover:underline">← JRI</Link>
       <div className="flex items-center justify-between mt-2 mb-4">
         <h1 className="text-2xl font-bold">{u.prenom} {u.nom}</h1>
         <span className={`px-3 py-1 rounded text-sm ${u.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{u.actif ? 'Actif' : 'Inactif'}</span>
       </div>
-      <p className="text-sm text-gray-500 mb-6">{u.email} · {u.telephone ?? '—'} · {u.role}</p>
+      <p className="text-sm text-muted mb-6">{u.email} · {u.telephone ?? '—'} · {u.role}</p>
 
       {/* Tarifs éditables (ADMIN) */}
-      <div className="bg-white rounded-xl shadow-sm p-5 mb-6 max-w-xl">
+      <div className="bg-surface rounded-xl shadow-sm p-5 mb-6 max-w-xl">
         <h2 className="font-semibold mb-4">Tarifs & profil pige</h2>
-        {msg && <p className="text-sm bg-gray-50 p-2 rounded mb-3">{msg}</p>}
+        {msg && <p className="text-sm bg-surface-2 p-2 rounded mb-3">{msg}</p>}
         {isAdmin ? (
           <form onSubmit={saveTarifs} className="space-y-3">
             <div className="flex gap-3">
@@ -90,7 +90,7 @@ export default function JriDetailPage() {
               </label>
             </div>
             <input className={INPUT} placeholder="Spécialité" value={tarifs.specialite} onChange={(e) => setTarifs({ ...tarifs, specialite: e.target.value })} />
-            <div className="pt-2 border-t text-xs text-gray-500 font-medium">Coordonnées de paiement</div>
+            <div className="pt-2 border-t text-xs text-muted font-medium">Coordonnées de paiement</div>
             <input className={INPUT} placeholder="IBAN / n° de compte" value={tarifs.iban} onChange={(e) => setTarifs({ ...tarifs, iban: e.target.value })} />
             <div className="flex gap-3">
               <input className={INPUT} placeholder="Banque / opérateur" value={tarifs.banque} onChange={(e) => setTarifs({ ...tarifs, banque: e.target.value })} />
@@ -116,7 +116,7 @@ export default function JriDetailPage() {
       <div className="grid lg:grid-cols-3 gap-6">
         <Section title={`Sujets (${u.sujetsAssignes.length})`}>
           {u.sujetsAssignes.length === 0 ? <Empty /> : u.sujetsAssignes.map((s) => (
-            <Link key={s.id} href={`/dashboard/sujets/${s.id}`} className="block border-b last:border-0 py-2 text-sm hover:bg-gray-50">
+            <Link key={s.id} href={`/dashboard/sujets/${s.id}`} className="block border-b last:border-0 py-2 text-sm hover:bg-surface-2">
               <span className="font-mono text-xs text-brand">{s.reference}</span> — {s.titre} · <b>{s.statut}</b>
             </Link>
           ))}
@@ -143,8 +143,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div>
       <h2 className="font-semibold mb-2 text-sm">{title}</h2>
-      <div className="bg-white rounded-xl shadow-sm px-4 py-1">{children}</div>
+      <div className="bg-surface rounded-xl shadow-sm px-4 py-1">{children}</div>
     </div>
   );
 }
-function Empty() { return <p className="text-gray-400 text-sm py-2">Aucun.</p>; }
+function Empty() { return <p className="text-muted text-sm py-2">Aucun.</p>; }

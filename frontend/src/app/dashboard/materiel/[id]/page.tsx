@@ -70,27 +70,27 @@ export default function MaterielDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/materiel" className="text-sm text-gray-500 hover:underline">← Équipements</Link>
+      <Link href="/dashboard/materiel" className="text-sm text-muted hover:underline">← Équipements</Link>
       <div className="flex items-center justify-between mt-2 mb-1">
         <h1 className="text-2xl font-bold">{m.reference} — {[m.marque, m.modele].filter(Boolean).join(' ') || m.categorie.nom}</h1>
         <span className="px-3 py-1 rounded text-sm bg-gray-100">{m.statut}</span>
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mt-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm md:col-span-2 text-sm space-y-1">
-          <div><span className="text-gray-500">N° inventaire :</span> {m.numInventaire}</div>
-          <div><span className="text-gray-500">Catégorie :</span> {m.categorie.nom}</div>
-          <div><span className="text-gray-500">N° série :</span> {m.numSerie ?? '—'}</div>
-          <div><span className="text-gray-500">Achat :</span> {m.dateAchat ? new Date(m.dateAchat).toLocaleDateString('fr-FR') : '—'} · {m.fournisseur ?? '—'}</div>
-          <div><span className="text-gray-500">Garantie jusqu’au :</span> {m.garantieFin ? new Date(m.garantieFin).toLocaleDateString('fr-FR') : '—'}</div>
-          <div><span className="text-gray-500">Coût :</span> {formatMoney(Number(m.coutAcquisition))}</div>
-          <div><span className="text-gray-500">État :</span> {m.etat}</div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm md:col-span-2 text-sm space-y-1">
+          <div><span className="text-muted">N° inventaire :</span> {m.numInventaire}</div>
+          <div><span className="text-muted">Catégorie :</span> {m.categorie.nom}</div>
+          <div><span className="text-muted">N° série :</span> {m.numSerie ?? '—'}</div>
+          <div><span className="text-muted">Achat :</span> {m.dateAchat ? new Date(m.dateAchat).toLocaleDateString('fr-FR') : '—'} · {m.fournisseur ?? '—'}</div>
+          <div><span className="text-muted">Garantie jusqu’au :</span> {m.garantieFin ? new Date(m.garantieFin).toLocaleDateString('fr-FR') : '—'}</div>
+          <div><span className="text-muted">Coût :</span> {formatMoney(Number(m.coutAcquisition))}</div>
+          <div><span className="text-muted">État :</span> {m.etat}</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
-          <div className="text-xs text-gray-500 mb-2">QR Code</div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
+          <div className="text-xs text-muted mb-2">QR Code</div>
           {m.qrCodeUrl
             ? <img src={m.qrCodeUrl} alt="QR" className="w-32 h-32" />
-            : <div className="w-32 h-32 bg-gray-100 flex items-center justify-center text-gray-400 text-xs">—</div>}
+            : <div className="w-32 h-32 bg-gray-100 flex items-center justify-center text-muted text-xs">—</div>}
         </div>
       </div>
 
@@ -114,7 +114,7 @@ export default function MaterielDetailPage() {
       <Section title="Incidents">
         {m.incidents.length === 0 ? <Empty /> : m.incidents.map((i) => (
           <div key={i.id} className="border-b last:border-0 py-2 text-sm">
-            <span className="text-gray-400">{new Date(i.createdAt).toLocaleDateString('fr-FR')}</span> — <b>{i.type}</b> : {i.description}
+            <span className="text-muted">{new Date(i.createdAt).toLocaleDateString('fr-FR')}</span> — <b>{i.type}</b> : {i.description}
           </div>
         ))}
       </Section>
@@ -128,7 +128,7 @@ export default function MaterielDetailPage() {
                 {[...(d.photosRemise ?? []), ...(d.photosRetour ?? [])].map((url) => (
                   <a key={url} href={url} target="_blank"><img src={url} alt="" className="w-12 h-12 object-cover rounded border" /></a>
                 ))}
-                {d.signatureUrl && <a href={d.signatureUrl} target="_blank" className="text-xs underline text-gray-500 self-center">signature</a>}
+                {d.signatureUrl && <a href={d.signatureUrl} target="_blank" className="text-xs underline text-muted self-center">signature</a>}
               </div>
             )}
           </div>
@@ -168,8 +168,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div className="mb-6">
       <h2 className="font-semibold mb-2">{title}</h2>
-      <div className="bg-white rounded-xl shadow-sm px-4 py-1">{children}</div>
+      <div className="bg-surface rounded-xl shadow-sm px-4 py-1">{children}</div>
     </div>
   );
 }
-function Empty() { return <p className="text-gray-400 text-sm py-2">Aucun.</p>; }
+function Empty() { return <p className="text-muted text-sm py-2">Aucun.</p>; }

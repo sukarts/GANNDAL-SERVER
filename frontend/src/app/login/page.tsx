@@ -33,11 +33,11 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center">
-      <form onSubmit={submit} className="bg-white p-8 rounded-xl shadow w-full max-w-sm space-y-4">
+      <form onSubmit={submit} className="bg-surface p-8 rounded-xl shadow w-full max-w-sm space-y-4">
         <div className="flex justify-end"><LangSelector /></div>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-brand">GANNDAL</h1>
-          <p className="text-sm text-gray-500">{t('Gestion média digital', 'Digital media management')}</p>
+          <p className="text-sm text-muted">{t('Gestion média digital', 'Digital media management')}</p>
         </div>
         {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
         <input

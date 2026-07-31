@@ -27,11 +27,11 @@ export default function CurrencySelector() {
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-gray-500">Devise</span>
+      <span className="text-muted">Devise</span>
       <select
         value={sel}
         onChange={(e) => change(e.target.value)}
-        className="border rounded px-2 py-1 bg-white"
+        className="border rounded px-2 py-1 bg-surface"
       >
         {devises.map((d) => (
           <option key={d.code} value={d.code}>

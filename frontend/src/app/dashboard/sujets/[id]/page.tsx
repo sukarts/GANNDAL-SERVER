@@ -80,29 +80,29 @@ export default function SujetDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/sujets" className="text-sm text-gray-500 hover:underline">← {t('Sujets', 'Assignments')}</Link>
+      <Link href="/dashboard/sujets" className="text-sm text-muted hover:underline">← {t('Sujets', 'Assignments')}</Link>
       <div className="flex items-center justify-between mt-2 mb-1">
         <h1 className="text-2xl font-bold">{s.titre}</h1>
         <span className={`px-3 py-1 rounded text-sm ${STATUT_COLOR[s.statut] ?? ''}`}>{s.statut}</span>
       </div>
-      <p className="text-sm text-gray-500 mb-4 font-mono">{s.reference}</p>
+      <p className="text-sm text-muted mb-4 font-mono">{s.reference}</p>
 
       <div className="grid md:grid-cols-3 gap-4 mb-6 text-sm">
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="text-gray-500">{t('JRI', 'Contributor')}</div><div>{s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'}</div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm">
+          <div className="text-muted">{t('JRI', 'Contributor')}</div><div>{s.jri ? `${s.jri.prenom} ${s.jri.nom}` : '—'}</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="text-gray-500">{t('Échéance', 'Deadline')}</div><div>{s.dateLimite ? new Date(s.dateLimite).toLocaleDateString('fr-FR') : '—'} · {s.priorite}</div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm">
+          <div className="text-muted">{t('Échéance', 'Deadline')}</div><div>{s.dateLimite ? new Date(s.dateLimite).toLocaleDateString('fr-FR') : '—'} · {s.priorite}</div>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm">
-          <div className="text-gray-500">{t('Durée', 'Duration')}</div><div>{s.dureeMinutes} min</div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm">
+          <div className="text-muted">{t('Durée', 'Duration')}</div><div>{s.dureeMinutes} min</div>
         </div>
       </div>
-      {s.description && <p className="bg-white rounded-xl p-4 shadow-sm mb-6 text-sm">{s.description}</p>}
+      {s.description && <p className="bg-surface rounded-xl p-4 shadow-sm mb-6 text-sm">{s.description}</p>}
 
       {/* Actions JRI */}
       {estJriProprio && s.statut !== 'VALIDE' && (
-        <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
+        <div className="bg-surface rounded-xl p-4 shadow-sm mb-6">
           <h2 className="font-semibold mb-3">{t('Mes actions', 'My actions')}</h2>
           <div className="flex gap-2 mb-4">
             {s.statut === 'ASSIGNE' && <button disabled={busy} onClick={() => changerStatut('EN_COURS')} className="bg-blue-600 text-white rounded px-3 py-1.5 text-sm">{t('Démarrer', 'Start')}</button>}
@@ -125,7 +125,7 @@ export default function SujetDetailPage() {
 
       {/* Validation rédacteur */}
       {estRedac && (s.statut === 'LIVRE' || s.statut === 'EN_COURS') && (
-        <div className="bg-white rounded-xl p-4 shadow-sm mb-6">
+        <div className="bg-surface rounded-xl p-4 shadow-sm mb-6">
           <h2 className="font-semibold mb-3">Validation</h2>
           <textarea className={INPUT} rows={2} placeholder="Commentaire" value={comment} onChange={(e) => setComment(e.target.value)} />
           <div className="flex gap-2 mt-3">
@@ -138,9 +138,9 @@ export default function SujetDetailPage() {
 
       {/* Éléments */}
       <h2 className="font-semibold mb-2">{t('Éléments déposés', 'Uploaded files')}</h2>
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto mb-6">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto mb-6">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">Type</th><th className="p-3">Fichier</th><th className="p-3">Version</th><th className="p-3">Taille</th><th className="p-3"></th></tr></thead>
+          <thead className="bg-surface-2 text-left text-muted"><tr><th className="p-3">Type</th><th className="p-3">Fichier</th><th className="p-3">Version</th><th className="p-3">Taille</th><th className="p-3"></th></tr></thead>
           <tbody>
             {s.elements.map((el) => (
               <tr key={el.id} className="border-t">
@@ -151,22 +151,22 @@ export default function SujetDetailPage() {
                 <td className="p-3">{el.url && <a href={el.url} target="_blank" className="text-brand underline text-xs">Ouvrir</a>}</td>
               </tr>
             ))}
-            {s.elements.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={5}>Aucun élément</td></tr>}
+            {s.elements.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={5}>Aucun élément</td></tr>}
           </tbody>
         </table>
       </div>
 
       {/* Historique validations */}
       <h2 className="font-semibold mb-2">Historique des validations</h2>
-      <div className="bg-white rounded-xl shadow-sm p-4 text-sm space-y-2">
+      <div className="bg-surface rounded-xl shadow-sm p-4 text-sm space-y-2">
         {s.validations.map((v) => (
           <div key={v.id} className="border-b last:border-0 pb-2 last:pb-0">
-            <span className="text-gray-400">{new Date(v.createdAt).toLocaleString('fr-FR')}</span> —{' '}
+            <span className="text-muted">{new Date(v.createdAt).toLocaleString('fr-FR')}</span> —{' '}
             <b>{v.validateur.prenom} {v.validateur.nom}</b> : {v.action}
             {v.commentaire && <span className="text-gray-600"> — “{v.commentaire}”</span>}
           </div>
         ))}
-        {s.validations.length === 0 && <p className="text-gray-400">Aucune validation.</p>}
+        {s.validations.length === 0 && <p className="text-muted">Aucune validation.</p>}
       </div>
     </div>
   );

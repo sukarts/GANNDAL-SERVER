@@ -92,9 +92,9 @@ export default function SujetsPage() {
         )}
       </div>
       {error && !open && <p className="text-red-600 mb-3">{error}</p>}
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-surface-2 text-left text-muted">
             <tr>
               <th className="p-3">{t('Référence', 'Reference')}</th><th className="p-3">{t('Titre', 'Title')}</th><th className="p-3">{t('JRI', 'Contributor')}</th>
               <th className="p-3">{t('Priorité', 'Priority')}</th><th className="p-3">{t('Échéance', 'Deadline')}</th><th className="p-3">{t('Statut', 'Status')}</th>
@@ -113,7 +113,7 @@ export default function SujetsPage() {
                 <td className="p-3"><span className={`px-2 py-1 rounded text-xs ${STATUT_COLOR[s.statut] ?? ''}`}>{s.statut}</span></td>
               </tr>
             ))}
-            {sujets.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={6}>{t('Aucun sujet', 'No assignments')}</td></tr>}
+            {sujets.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={6}>{t('Aucun sujet', 'No assignments')}</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />

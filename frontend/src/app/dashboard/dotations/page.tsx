@@ -107,9 +107,9 @@ export default function DotationsPage() {
         <h1 className="text-2xl font-bold">{t('Dotations', 'Equipment assignments')}</h1>
         {peutCreer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">{t('+ Nouvelle dotation', '+ New assignment')}</button>}
       </div>
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-surface-2 text-left text-muted">
             <tr><th className="p-3">{t('Matériel', 'Equipment')}</th><th className="p-3">{t('Catégorie', 'Category')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Remise', 'Handed over')}</th><th className="p-3">{t('État remise', 'Condition')}</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
           </thead>
           <tbody>
@@ -128,7 +128,7 @@ export default function DotationsPage() {
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-gray-400" colSpan={7}>{t('Aucune dotation', 'No assignments')}</td></tr>}
+            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={7}>{t('Aucune dotation', 'No assignments')}</td></tr>}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
@@ -141,7 +141,7 @@ export default function DotationsPage() {
             <option value="">— Matériel disponible —</option>
             {materiels.map((m) => <option key={m.id} value={m.id}>{m.reference}</option>)}
           </select>
-          {materiels.length === 0 && <p className="text-xs text-gray-400">Aucun matériel disponible.</p>}
+          {materiels.length === 0 && <p className="text-xs text-muted">Aucun matériel disponible.</p>}
           <select required className={INPUT} value={form.jriId} onChange={(e) => setForm({ ...form, jriId: e.target.value })}>
             <option value="">— JRI bénéficiaire —</option>
             {jris.map((j) => <option key={j.id} value={j.id}>{j.prenom} {j.nom}</option>)}
@@ -158,7 +158,7 @@ export default function DotationsPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-sm text-gray-600">Signature du JRI</label>
-              <button type="button" onClick={() => sigRef.current?.clear()} className="text-xs underline text-gray-500">Effacer</button>
+              <button type="button" onClick={() => sigRef.current?.clear()} className="text-xs underline text-muted">Effacer</button>
             </div>
             <SignaturePad ref={sigRef} />
           </div>
@@ -182,7 +182,7 @@ export default function DotationsPage() {
           <label className="text-sm block text-gray-600">Photos au retour
             <input type="file" accept="image/*" multiple onChange={(e) => setPhotosRetour(e.target.files)} className="block text-sm mt-1" />
           </label>
-          <p className="text-xs text-gray-400">Dégradation calculée automatiquement selon l’état (% du coût d’acquisition).</p>
+          <p className="text-xs text-muted">Dégradation calculée automatiquement selon l’état (% du coût d’acquisition).</p>
           <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Enregistrement…' : 'Valider la restitution'}
           </button>

@@ -54,16 +54,16 @@ export default function BudgetPage() {
           <input type="number" min={1} max={12} value={mois} onChange={(e) => setMois(e.target.value)} className="border rounded px-2 py-1 text-sm w-16" />
         </div>
       </div>
-      {msg && <p className="text-sm bg-gray-50 p-2 rounded mb-3">{msg}</p>}
+      {msg && <p className="text-sm bg-surface-2 p-2 rounded mb-3">{msg}</p>}
 
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Prévu total</div><div className="text-2xl font-bold text-brand">{formatMoney(totalPrevu)}</div></div>
-        <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Réel (piges validées)</div><div className="text-2xl font-bold">{formatMoney(totalReel)}</div></div>
-        <div className="bg-white rounded-xl p-4 shadow-sm"><div className="text-xs text-gray-500">Écart</div><div className={`text-2xl font-bold ${totalPrevu - totalReel < 0 ? 'text-red-600' : 'text-green-700'}`}>{formatMoney(totalPrevu - totalReel)}</div></div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Prévu total</div><div className="text-2xl font-bold text-brand">{formatMoney(totalPrevu)}</div></div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Réel (piges validées)</div><div className="text-2xl font-bold">{formatMoney(totalReel)}</div></div>
+        <div className="bg-surface rounded-xl p-4 shadow-sm"><div className="text-xs text-muted">Écart</div><div className={`text-2xl font-bold ${totalPrevu - totalReel < 0 ? 'text-red-600' : 'text-green-700'}`}>{formatMoney(totalPrevu - totalReel)}</div></div>
       </div>
 
       {data && data.lignes.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="bg-surface rounded-xl shadow-sm p-4 mb-6">
           <ResponsiveContainer width="100%" height={Math.max(140, data.lignes.length * 44)}>
             <BarChart data={data.lignes} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
@@ -78,9 +78,9 @@ export default function BudgetPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500"><tr><th className="p-3">Rubrique</th><th className="p-3">Prévu</th><th className="p-3">Réel</th><th className="p-3">Écart</th></tr></thead>
+          <thead className="bg-surface-2 text-left text-muted"><tr><th className="p-3">Rubrique</th><th className="p-3">Prévu</th><th className="p-3">Réel</th><th className="p-3">Écart</th></tr></thead>
           <tbody>
             {data?.lignes.map((l) => (
               <tr key={l.rubrique} className="border-t">
@@ -97,13 +97,13 @@ export default function BudgetPage() {
                 <td className="p-3"><span className={l.ecart < 0 ? 'text-red-600' : 'text-green-700'}>{formatMoney(l.ecart)}</span></td>
               </tr>
             ))}
-            {(!data || data.lignes.length === 0) && <tr><td className="p-6 text-center text-gray-400" colSpan={4}>Aucune rubrique.</td></tr>}
+            {(!data || data.lignes.length === 0) && <tr><td className="p-6 text-center text-muted" colSpan={4}>Aucune rubrique.</td></tr>}
           </tbody>
         </table>
       </div>
 
       {peutEditer && (
-        <form onSubmit={ajouter} className="flex flex-wrap items-end gap-2 bg-white p-4 rounded-xl shadow-sm mt-4">
+        <form onSubmit={ajouter} className="flex flex-wrap items-end gap-2 bg-surface p-4 rounded-xl shadow-sm mt-4">
           <input placeholder="Nouvelle rubrique" value={nouvelle.rubrique} onChange={(e) => setNouvelle({ ...nouvelle, rubrique: e.target.value })} className="border rounded px-2 py-1 text-sm" />
           <input type="number" min={0} placeholder="Budget prévu (GNF)" value={nouvelle.montant} onChange={(e) => setNouvelle({ ...nouvelle, montant: e.target.value })} className="border rounded px-2 py-1 text-sm w-40" />
           <button className="bg-brand text-white rounded px-4 py-1.5 text-sm">Ajouter</button>

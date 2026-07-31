@@ -60,14 +60,14 @@ export default function DevisesPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">Devises</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-muted mb-6">
         Devise de base : <b>GNF</b>. Taux = nombre de GNF pour 1 unité de la devise. Saisie manuelle.
       </p>
       {msg && <p className="text-sm mb-4 bg-amber-50 text-amber-800 p-2 rounded">{msg}</p>}
 
-      <div className="bg-white rounded-xl shadow-sm overflow-x-auto mb-6">
+      <div className="bg-surface rounded-xl shadow-sm overflow-x-auto mb-6">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-500">
+          <thead className="bg-surface-2 text-left text-muted">
             <tr><th className="p-3">Code</th><th className="p-3">Nom</th><th className="p-3">Symbole</th><th className="p-3">Taux (GNF / unité)</th><th className="p-3">Défaut</th><th className="p-3">Actif</th></tr>
           </thead>
           <tbody>
@@ -99,7 +99,7 @@ export default function DevisesPage() {
       </div>
 
       <h2 className="font-semibold mb-2">Ajouter une devise</h2>
-      <form onSubmit={create} className="flex flex-wrap gap-2 items-end bg-white p-4 rounded-xl shadow-sm">
+      <form onSubmit={create} className="flex flex-wrap gap-2 items-end bg-surface p-4 rounded-xl shadow-sm">
         <input required placeholder="Code (USD)" value={form.code} maxLength={4}
           onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className="border rounded px-2 py-1 w-28" />
         <input required placeholder="Nom" value={form.nom}

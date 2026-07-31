@@ -42,13 +42,13 @@ export default function InvitationPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-xl shadow w-full max-w-sm">
+      <div className="bg-surface p-8 rounded-xl shadow w-full max-w-sm">
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-brand">GANNDAL</h1>
-          <p className="text-sm text-gray-500">Activation de votre compte</p>
+          <p className="text-sm text-muted">Activation de votre compte</p>
         </div>
 
-        {loading && <p className="text-sm text-gray-500 text-center">Vérification…</p>}
+        {loading && <p className="text-sm text-muted text-center">Vérification…</p>}
         {!loading && error && !invite && <p className="text-sm text-red-600 bg-red-50 p-3 rounded text-center">{error}</p>}
 
         {invite && (

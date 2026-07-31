@@ -59,7 +59,7 @@ export default function MediasPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {items.map((m) => (
-          <div key={m.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div key={m.id} className="bg-surface rounded-xl shadow-sm overflow-hidden">
             <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
               {m.type === 'PHOTO' && m.url
                 ? <img src={m.url} alt={m.nomFichier} className="w-full h-full object-cover" />
@@ -69,17 +69,17 @@ export default function MediasPage() {
             </div>
             <div className="p-2 text-xs">
               <div className="font-medium truncate" title={m.nomFichier}>{m.nomFichier}</div>
-              <div className="text-gray-400 flex justify-between mt-0.5">
+              <div className="text-muted flex justify-between mt-0.5">
                 <span>{m.type} · v{m.version}</span><span>{taille(m.tailleOctets)}</span>
               </div>
               <div className="flex justify-between items-center mt-1">
                 <Link href={`/dashboard/sujets/${m.sujet.id}`} className="text-brand font-mono text-[10px] hover:underline">{m.sujet.reference}</Link>
-                {m.url && <a href={m.url} target="_blank" className="underline text-gray-500">{t('Ouvrir', 'Open')}</a>}
+                {m.url && <a href={m.url} target="_blank" className="underline text-muted">{t('Ouvrir', 'Open')}</a>}
               </div>
             </div>
           </div>
         ))}
-        {items.length === 0 && <p className="col-span-full text-center text-gray-400 py-10">{t('Aucun élément.', 'No files.')}</p>}
+        {items.length === 0 && <p className="col-span-full text-center text-muted py-10">{t('Aucun élément.', 'No files.')}</p>}
       </div>
 
       <div className="mt-4"><Pagination page={page} total={total} limit={LIMIT} onChange={setPage} /></div>

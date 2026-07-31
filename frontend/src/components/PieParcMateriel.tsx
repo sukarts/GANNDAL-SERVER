@@ -22,7 +22,7 @@ export default function PieParcMateriel({ inv }: { inv: Inventaire }) {
     { label: 'Perdu / Volé', value: inv.perdu + inv.vole, couleur: SEGMENTS[3].couleur },
   ].filter((d) => d.value > 0);
 
-  if (data.length === 0) return <p className="text-sm text-gray-400">Aucun équipement.</p>;
+  if (data.length === 0) return <p className="text-sm text-muted">Aucun équipement.</p>;
 
   return (
     <ResponsiveContainer width="100%" height={240}>
