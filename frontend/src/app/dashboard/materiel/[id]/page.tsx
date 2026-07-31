@@ -73,7 +73,7 @@ export default function MaterielDetailPage() {
       <Link href="/dashboard/materiel" className="text-sm text-muted hover:underline">← Équipements</Link>
       <div className="flex items-center justify-between mt-2 mb-1">
         <h1 className="text-2xl font-bold">{m.reference} — {[m.marque, m.modele].filter(Boolean).join(' ') || m.categorie.nom}</h1>
-        <span className="px-3 py-1 rounded text-sm bg-gray-100">{m.statut}</span>
+        <span className="px-3 py-1 rounded text-sm bg-surface-2 border border-line">{m.statut}</span>
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 mt-4 mb-6">
@@ -90,7 +90,7 @@ export default function MaterielDetailPage() {
           <div className="text-xs text-muted mb-2">QR Code</div>
           {m.qrCodeUrl
             ? <img src={m.qrCodeUrl} alt="QR" className="w-32 h-32" />
-            : <div className="w-32 h-32 bg-gray-100 flex items-center justify-center text-muted text-xs">—</div>}
+            : <div className="w-32 h-32 bg-surface-2 border border-line flex items-center justify-center text-muted text-xs">—</div>}
         </div>
       </div>
 

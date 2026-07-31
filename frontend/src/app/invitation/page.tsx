@@ -53,7 +53,7 @@ export default function InvitationPage() {
 
         {invite && (
           <form onSubmit={submit} className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted">
               Bonjour <b>{invite.prenom} {invite.nom}</b> ({invite.email}) — rôle <b>{invite.role}</b>.
               Choisissez votre mot de passe.
             </p>

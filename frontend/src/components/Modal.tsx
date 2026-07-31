@@ -33,7 +33,7 @@ export default function Modal({
       >
         <div className="flex items-center justify-between px-5 py-3 border-b sticky top-0 bg-surface">
           <h2 className="font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-muted hover:text-gray-700 text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-muted hover:text-content text-xl leading-none">×</button>
         </div>
         <div className="p-5">{children}</div>
       </div>

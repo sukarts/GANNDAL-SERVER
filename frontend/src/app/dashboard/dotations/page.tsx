@@ -152,12 +152,12 @@ export default function DotationsPage() {
             </select>
           </label>
           <textarea className={INPUT} rows={2} placeholder="Observations" value={form.observations} onChange={(e) => setForm({ ...form, observations: e.target.value })} />
-          <label className="text-sm block text-gray-600">Photos du matériel
+          <label className="text-sm block text-muted">Photos du matériel
             <input type="file" accept="image/*" multiple onChange={(e) => setPhotos(e.target.files)} className="block text-sm mt-1" />
           </label>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-sm text-gray-600">Signature du JRI</label>
+              <label className="text-sm text-muted">Signature du JRI</label>
               <button type="button" onClick={() => sigRef.current?.clear()} className="text-xs underline text-muted">Effacer</button>
             </div>
             <SignaturePad ref={sigRef} />
@@ -179,7 +179,7 @@ export default function DotationsPage() {
             </select>
           </label>
           <textarea className={INPUT} rows={2} placeholder="Observations retour" value={rForm.observationsRetour} onChange={(e) => setRForm({ ...rForm, observationsRetour: e.target.value })} />
-          <label className="text-sm block text-gray-600">Photos au retour
+          <label className="text-sm block text-muted">Photos au retour
             <input type="file" accept="image/*" multiple onChange={(e) => setPhotosRetour(e.target.files)} className="block text-sm mt-1" />
           </label>
           <p className="text-xs text-muted">Dégradation calculée automatiquement selon l’état (% du coût d’acquisition).</p>

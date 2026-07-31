@@ -37,7 +37,7 @@ export default function NotificationBell() {
 
   return (
     <div className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="relative p-2 rounded hover:bg-gray-100" aria-label="Notifications">
+      <button onClick={() => setOpen((o) => !o)} className="relative p-2 rounded hover:bg-surface-2" aria-label="Notifications">
         <span className="text-xl">🔔</span>
         {nonLues > 0 && (
           <span className="absolute top-0 right-0 bg-red-600 text-white text-[10px] rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">

@@ -60,7 +60,7 @@ export default function MediasPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {items.map((m) => (
           <div key={m.id} className="bg-surface rounded-xl shadow-sm overflow-hidden">
-            <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
+            <div className="aspect-video bg-surface-2 border border-line flex items-center justify-center overflow-hidden">
               {m.type === 'PHOTO' && m.url
                 ? <img src={m.url} alt={m.nomFichier} className="w-full h-full object-cover" />
                 : m.type === 'VIDEO' && m.url

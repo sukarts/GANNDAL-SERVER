@@ -16,7 +16,7 @@ interface SujetDetail {
 }
 
 const STATUT_COLOR: Record<string, string> = {
-  ASSIGNE: 'bg-gray-100 text-gray-700', EN_COURS: 'bg-blue-100 text-blue-700',
+  ASSIGNE: 'bg-surface-2 text-content', EN_COURS: 'bg-blue-100 text-blue-700',
   LIVRE: 'bg-amber-100 text-amber-700', VALIDE: 'bg-green-100 text-green-700', REJETE: 'bg-red-100 text-red-700',
 };
 const INPUT = 'w-full border rounded px-3 py-2 text-sm';
@@ -163,7 +163,7 @@ export default function SujetDetailPage() {
           <div key={v.id} className="border-b last:border-0 pb-2 last:pb-0">
             <span className="text-muted">{new Date(v.createdAt).toLocaleString('fr-FR')}</span> —{' '}
             <b>{v.validateur.prenom} {v.validateur.nom}</b> : {v.action}
-            {v.commentaire && <span className="text-gray-600"> — “{v.commentaire}”</span>}
+            {v.commentaire && <span className="text-muted"> — “{v.commentaire}”</span>}
           </div>
         ))}
         {s.validations.length === 0 && <p className="text-muted">Aucune validation.</p>}

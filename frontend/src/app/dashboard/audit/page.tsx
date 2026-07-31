@@ -21,7 +21,7 @@ export default function AuditPage() {
               <tr key={l.id} className="border-t">
                 <td className="p-3">{new Date(l.createdAt).toLocaleString('fr-FR')}</td>
                 <td className="p-3">{l.user ? `${l.user.prenom} ${l.user.nom}` : 'Système'}</td>
-                <td className="p-3"><span className="px-2 py-1 bg-gray-100 rounded text-xs">{l.action}</span></td>
+                <td className="p-3"><span className="px-2 py-1 bg-surface-2 border border-line rounded text-xs">{l.action}</span></td>
                 <td className="p-3">{l.entite}</td>
                 <td className="p-3 font-mono text-xs">{l.entiteId ?? '—'}</td>
               </tr>

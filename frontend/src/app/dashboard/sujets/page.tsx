@@ -18,7 +18,7 @@ interface Sujet {
 interface Jri { id: string; nom: string; prenom: string }
 
 const STATUT_COLOR: Record<string, string> = {
-  ASSIGNE: 'bg-gray-100 text-gray-700',
+  ASSIGNE: 'bg-surface-2 text-content',
   EN_COURS: 'bg-blue-100 text-blue-700',
   LIVRE: 'bg-amber-100 text-amber-700',
   VALIDE: 'bg-green-100 text-green-700',

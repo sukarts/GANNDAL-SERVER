@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { Check, ToggleLeft, ToggleRight } from 'lucide-react';
 import { api } from '@/lib/api';
 
 interface Devise {
@@ -84,12 +85,13 @@ export default function DevisesPage() {
                   />
                 </td>
                 <td className="p-3">
-                  {d.parDefaut ? <span className="text-brand font-medium">✔ défaut</span>
+                  {d.parDefaut ? <span className="inline-flex items-center gap-1 text-brand font-medium"><Check size={14} /> défaut</span>
                     : <button onClick={() => setDefaut(d.code)} className="text-xs underline">définir</button>}
                 </td>
                 <td className="p-3">
-                  <button onClick={() => toggleActif(d)} className="text-xs underline">
-                    {d.actif ? '✅ actif' : '❌ inactif'}
+                  <button onClick={() => toggleActif(d)} className={`inline-flex items-center gap-1 text-xs ${d.actif ? 'text-success' : 'text-muted'}`}>
+                    {d.actif ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                    {d.actif ? 'actif' : 'inactif'}
                   </button>
                 </td>
               </tr>
@@ -124,7 +126,7 @@ function TauxEditor({ initial, disabled, onSave }: { initial: string; disabled?:
         value={v}
         disabled={disabled}
         onChange={(e) => setV(e.target.value)}
-        className="border rounded px-2 py-1 w-32 disabled:bg-gray-100"
+        className="border border-line rounded px-2 py-1 w-32 disabled:bg-surface-2 disabled:text-muted"
       />
       {!disabled && v !== initial && (
         <button onClick={() => onSave(v)} className="text-xs bg-brand text-white rounded px-2 py-1">OK</button>

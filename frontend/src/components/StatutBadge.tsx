@@ -5,7 +5,7 @@ type Tone = 'gris' | 'info' | 'success' | 'warning' | 'danger';
 type Kind = 'sujet' | 'fiche' | 'dotation' | 'materiel' | 'priorite';
 
 const TONE: Record<Tone, string> = {
-  gris: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
+  gris: 'bg-surface-2 text-muted',
   info: 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
   success: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
   warning: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',

@@ -59,7 +59,7 @@ export default function PlanningPage() {
         <div className="flex items-center gap-2 mb-1">
           <span className={`w-2 h-2 rounded-full ${PRIO_DOT[s.priorite] ?? 'bg-gray-300'}`} />
           <span className="font-mono text-[10px] text-muted">{s.reference}</span>
-          {s.rubrique && <span className="ml-auto text-[10px] bg-gray-100 rounded px-1.5 py-0.5">{s.rubrique}</span>}
+          {s.rubrique && <span className="ml-auto text-[10px] bg-surface-2 border border-line rounded px-1.5 py-0.5">{s.rubrique}</span>}
         </div>
         <div className="font-medium leading-tight">{s.titre}</div>
         <div className="text-xs text-muted mt-1 flex justify-between">
