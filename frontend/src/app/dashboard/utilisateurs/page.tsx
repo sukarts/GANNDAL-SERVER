@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
+import EmptyState from '@/components/EmptyState';
 
 interface User {
   id: string; email: string; nom: string; prenom: string; telephone: string | null;
@@ -89,7 +90,7 @@ export default function UtilisateursPage() {
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <button onClick={() => { setError(''); setInviteOpen(true); }} className="border rounded px-3 py-2 text-sm hover:bg-surface-2">Inviter par email</button>
-          <button onClick={() => { setForm(emptyCreate); setError(''); setOpen(true); }} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvel utilisateur</button>
+          <button onClick={() => { setForm(emptyCreate); setError(''); setOpen(true); }} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvel utilisateur</button>
         </div>
       </div>
       {error && !open && !edit && <p className="text-red-600 mb-3">{error}</p>}
@@ -102,7 +103,7 @@ export default function UtilisateursPage() {
           </div>
           <div className="flex gap-2">
             <input readOnly value={lienInvit} className="flex-1 border rounded px-2 py-1 text-xs bg-surface" onFocus={(e) => e.target.select()} />
-            <button onClick={() => { navigator.clipboard.writeText(lienInvit); }} className="bg-brand text-white rounded px-3 py-1 text-xs">Copier</button>
+            <button onClick={() => { navigator.clipboard.writeText(lienInvit); }} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-3 py-1 text-xs">Copier</button>
           </div>
           <p className="text-xs text-muted mt-2">Un email a aussi été tenté. Si l’utilisateur ne le reçoit pas, envoyez-lui ce lien (WhatsApp, etc.).</p>
         </div>
@@ -129,7 +130,11 @@ export default function UtilisateursPage() {
                 </td>
               </tr>
             ))}
-            {visibles.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={6}>Aucun utilisateur</td></tr>}
+            {visibles.length === 0 && (
+              <tr><td colSpan={6}>
+                <EmptyState title={'Aucun utilisateur'} hint={'Invitez un membre de l’équipe.'} />
+              </td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -148,7 +153,7 @@ export default function UtilisateursPage() {
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <p className="text-xs text-muted">Pour un JRI, les tarifs se règlent ensuite sur sa fiche.</p>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Création…' : 'Créer'}</button>
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 disabled:opacity-50">{saving ? 'Création…' : 'Créer'}</button>
         </form>
       </Modal>
 
@@ -165,7 +170,7 @@ export default function UtilisateursPage() {
             {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
           </select>
           <p className="text-xs text-muted">L'utilisateur reçoit un lien pour définir son mot de passe (valable 7 jours).</p>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Envoi…' : 'Envoyer l\'invitation'}</button>
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 disabled:opacity-50">{saving ? 'Envoi…' : 'Envoyer l\'invitation'}</button>
         </form>
       </Modal>
 
@@ -182,7 +187,7 @@ export default function UtilisateursPage() {
             <select className={INPUT} value={edit.role} onChange={(e) => setEdit({ ...edit, role: e.target.value })} disabled={edit.id === me?.id}>
               {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
-            <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+            <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
           </form>
         )}
       </Modal>

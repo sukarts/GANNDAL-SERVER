@@ -5,6 +5,7 @@ import Pagination from '@/components/Pagination';
 import Modal from '@/components/Modal';
 import SignaturePad, { type SignatureHandle } from '@/components/SignaturePad';
 import { useLang } from '@/lib/i18n';
+import EmptyState from '@/components/EmptyState';
 
 interface Dotation {
   id: string; dateRemise: string; statut: string; etatRemise: string;
@@ -105,7 +106,7 @@ export default function DotationsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">{t('Dotations', 'Equipment assignments')}</h1>
-        {peutCreer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">{t('+ Nouvelle dotation', '+ New assignment')}</button>}
+        {peutCreer && <button onClick={openForm} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm hover:bg-brand-dark">{t('+ Nouvelle dotation', '+ New assignment')}</button>}
       </div>
       <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
@@ -128,7 +129,11 @@ export default function DotationsPage() {
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={7}>{t('Aucune dotation', 'No assignments')}</td></tr>}
+            {list.length === 0 && (
+              <tr><td colSpan={7}>
+                <EmptyState title={t('Aucune dotation', 'No assignments')} hint={t('Remettez du matériel à un JRI pour créer une dotation.', 'Hand equipment to a contributor to create one.')} />
+              </td></tr>
+            )}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
@@ -162,7 +167,7 @@ export default function DotationsPage() {
             </div>
             <SignaturePad ref={sigRef} />
           </div>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Enregistrement…' : 'Valider la remise'}
           </button>
         </form>
@@ -183,7 +188,7 @@ export default function DotationsPage() {
             <input type="file" accept="image/*" multiple onChange={(e) => setPhotosRetour(e.target.files)} className="block text-sm mt-1" />
           </label>
           <p className="text-xs text-muted">Dégradation calculée automatiquement selon l’état (% du coût d’acquisition).</p>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Enregistrement…' : 'Valider la restitution'}
           </button>
         </form>

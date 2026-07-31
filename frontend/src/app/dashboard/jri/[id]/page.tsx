@@ -100,7 +100,7 @@ export default function JriDetailPage() {
               <option value="">Mode de paiement préféré…</option>
               <option>Virement</option><option>Western Union</option><option>MoneyGram</option><option>Wave</option><option>PayPal</option><option>Espèces</option>
             </select>
-            <button disabled={saving} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark disabled:opacity-50">
+            <button disabled={saving} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm hover:bg-brand-dark disabled:opacity-50">
               {saving ? 'Enregistrement…' : 'Enregistrer les tarifs'}
             </button>
           </form>

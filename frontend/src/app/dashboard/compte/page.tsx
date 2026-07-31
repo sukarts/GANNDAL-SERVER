@@ -61,7 +61,7 @@ export default function ComptePage() {
             <input required className={INPUT} placeholder={t('Nom', 'Last name')} value={profil.nom} onChange={(e) => setProfil({ ...profil, nom: e.target.value })} />
           </div>
           <input className={INPUT} placeholder={t('Téléphone (WhatsApp)', 'Phone (WhatsApp)')} value={profil.telephone} onChange={(e) => setProfil({ ...profil, telephone: e.target.value })} />
-          <button disabled={savingProfil} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark disabled:opacity-50">
+          <button disabled={savingProfil} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm hover:bg-brand-dark disabled:opacity-50">
             {savingProfil ? t('Enregistrement…', 'Saving…') : t('Enregistrer le profil', 'Save profile')}
           </button>
         </form>
@@ -75,7 +75,7 @@ export default function ComptePage() {
           <input required type="password" className={INPUT} placeholder={t('Mot de passe actuel', 'Current password')} value={form.ancien} onChange={(e) => setForm({ ...form, ancien: e.target.value })} />
           <input required type="password" className={INPUT} placeholder={t('Nouveau mot de passe', 'New password')} value={form.nouveau} onChange={(e) => setForm({ ...form, nouveau: e.target.value })} />
           <input required type="password" className={INPUT} placeholder={t('Confirmer le nouveau', 'Confirm new password')} value={form.confirme} onChange={(e) => setForm({ ...form, confirme: e.target.value })} />
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? t('Enregistrement…', 'Saving…') : t('Changer le mot de passe', 'Change password')}
           </button>
         </form>

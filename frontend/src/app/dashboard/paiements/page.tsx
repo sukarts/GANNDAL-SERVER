@@ -7,6 +7,10 @@ import { useLang } from '@/lib/i18n';
 import Modal from '@/components/Modal';
 import MoneyMono from '@/components/MoneyMono';
 import StatutBadge from '@/components/StatutBadge';
+import Button from '@/components/Button';
+import EmptyState from '@/components/EmptyState';
+import { SkeletonRows } from '@/components/Skeleton';
+import SortableTh, { trier, type SortState } from '@/components/SortableTh';
 
 interface Fiche {
   id: string; reference: string; annee: number; mois: number;
@@ -32,6 +36,8 @@ export default function PaiementsPage() {
   const [periode, setPeriode] = useState({ annee: String(now.getFullYear()), mois: String(now.getMonth() + 1) });
   const [payFiche, setPayFiche] = useState<Fiche | null>(null);
   const [payForm, setPayForm] = useState({ mode: 'Virement', ref: '', date: '' });
+  const [chargement, setChargement] = useState(true);
+  const [sort, setSort] = useState<SortState | null>(null);
   const { t } = useLang();
   const user = typeof window !== 'undefined' ? getUser() : null;
   const peutCalculer = user?.role === 'ADMIN' || user?.role === 'COMPTABLE';
@@ -55,11 +61,21 @@ export default function PaiementsPage() {
   }
 
   function load() {
+    setChargement(true);
     apiPaged<Fiche>('/paiements', page, LIMIT)
       .then((r) => { setList(r.items); setTotal(r.total); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setChargement(false));
   }
   useEffect(load, [page]);
+
+  // Tri client sur la page courante (les montants/minutes sont triés numériquement)
+  const lignes = trier(list, sort, (f, k) => {
+    if (k === 'montantTotal') return Number(f.montantTotal);
+    if (k === 'periode') return f.annee * 100 + f.mois;
+    if (k === 'jri') return f.jri ? `${f.jri.prenom} ${f.jri.nom}` : '';
+    return (f as unknown as Record<string, unknown>)[k];
+  });
 
   function openForm() {
     setError('');
@@ -112,21 +128,31 @@ export default function PaiementsPage() {
             <>
               <input type="number" className="border border-line rounded px-2 py-1 text-sm w-20 tabular-nums" value={periode.annee} onChange={(e) => setPeriode({ ...periode, annee: e.target.value })} />
               <input type="number" min={1} max={12} className="border border-line rounded px-2 py-1 text-sm w-16 tabular-nums" value={periode.mois} onChange={(e) => setPeriode({ ...periode, mois: e.target.value })} />
-              <button onClick={bordereau} className="border border-line rounded px-3 py-2 text-sm hover:bg-surface-2">Bordereau PDF</button>
-              <button onClick={exportExcel} className="border border-line rounded px-3 py-2 text-sm hover:bg-surface-2">Export mois</button>
-              <button onClick={exportComptable} className="border border-line rounded px-3 py-2 text-sm hover:bg-surface-2">Compta {periode.annee}</button>
+              <Button variant="secondary" onClick={bordereau}>Bordereau PDF</Button>
+              <Button variant="secondary" onClick={exportExcel}>Export mois</Button>
+              <Button variant="secondary" onClick={exportComptable}>Compta {periode.annee}</Button>
             </>
           )}
-          {peutCalculer && <button onClick={openForm} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">Calculer une pige</button>}
+          {peutCalculer && <Button onClick={openForm}>Calculer une pige</Button>}
         </div>
       </div>
       <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-surface-2 text-left text-muted">
-            <tr><th className="p-3">{t('Référence', 'Reference')}</th><th className="p-3">{t('JRI', 'Contributor')}</th><th className="p-3">{t('Période', 'Period')}</th><th className="p-3 text-right">{t('Sujets', 'Items')}</th><th className="p-3 text-right">Minutes</th><th className="p-3 text-right">Total</th><th className="p-3">{t('Statut', 'Status')}</th><th className="p-3"></th></tr>
+            <tr>
+              <SortableTh label={t('Référence', 'Reference')} sortKey="reference" sort={sort} onSort={setSort} />
+              <SortableTh label={t('JRI', 'Contributor')} sortKey="jri" sort={sort} onSort={setSort} />
+              <SortableTh label={t('Période', 'Period')} sortKey="periode" sort={sort} onSort={setSort} />
+              <SortableTh label={t('Sujets', 'Items')} sortKey="nbSujets" sort={sort} onSort={setSort} align="right" />
+              <SortableTh label="Minutes" sortKey="totalMinutes" sort={sort} onSort={setSort} align="right" />
+              <SortableTh label="Total" sortKey="montantTotal" sort={sort} onSort={setSort} align="right" />
+              <SortableTh label={t('Statut', 'Status')} sortKey="statut" sort={sort} onSort={setSort} />
+              <th className="p-3"></th>
+            </tr>
           </thead>
+          {chargement ? <SkeletonRows rows={5} cols={8} /> : (
           <tbody>
-            {list.map((f) => (
+            {lignes.map((f) => (
               <tr key={f.id} className="border-t border-line">
                 <td className="p-3 font-mono text-xs">{f.reference}</td>
                 <td className="p-3">{f.jri ? `${f.jri.prenom} ${f.jri.nom}` : '—'}</td>
@@ -144,8 +170,19 @@ export default function PaiementsPage() {
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={8}>{t('Aucune fiche', 'No slips')}</td></tr>}
+            {lignes.length === 0 && (
+              <tr><td colSpan={8}>
+                <EmptyState
+                  title={t('Aucune fiche de pige', 'No payment slips')}
+                  hint={peutCalculer
+                    ? t('Calculez une pige pour un JRI sur la période choisie.', 'Calculate a fee for a contributor over the selected period.')
+                    : t('Vos fiches apparaîtront ici une fois générées.', 'Your slips will appear here once generated.')}
+                  action={peutCalculer ? <Button size="sm" onClick={openForm}>{t('Calculer une pige', 'Calculate a fee')}</Button> : undefined}
+                />
+              </td></tr>
+            )}
           </tbody>
+          )}
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
       </div>
@@ -160,7 +197,7 @@ export default function PaiementsPage() {
           </label>
           <input className={INPUT} placeholder="Référence (n° transaction / bordereau)" value={payForm.ref} onChange={(e) => setPayForm({ ...payForm, ref: e.target.value })} />
           <label className="text-sm block">Date de paiement<input type="date" className={INPUT} value={payForm.date} onChange={(e) => setPayForm({ ...payForm, date: e.target.value })} /></label>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Validation…' : 'Confirmer le paiement'}</button>
+          <Button type="submit" loading={saving} className="w-full">{saving ? 'Validation…' : 'Confirmer le paiement'}</Button>
         </form>
       </Modal>
 
@@ -180,9 +217,9 @@ export default function PaiementsPage() {
             <label className="flex-1 text-sm">Pénalités (GNF)<input type="number" min={0} className={INPUT} value={form.penalites} onChange={(e) => setForm({ ...form, penalites: e.target.value })} /></label>
           </div>
           <p className="text-xs text-muted">Base = sujets validés du mois × tarif/sujet + minutes × tarif/minute.</p>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+          <Button type="submit" loading={saving} className="w-full">
             {saving ? 'Calcul…' : 'Générer la fiche'}
-          </button>
+          </Button>
         </form>
       </Modal>
     </div>

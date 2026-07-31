@@ -116,7 +116,7 @@ export default function SujetDetailPage() {
               </select>
             </label>
             <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
-            <button disabled={busy || !file} className="bg-brand text-white rounded px-4 py-2 text-sm disabled:opacity-50">
+            <button disabled={busy || !file} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm disabled:opacity-50">
               {busy ? t('Envoi…', 'Uploading…') : t('Déposer', 'Upload')}
             </button>
           </form>

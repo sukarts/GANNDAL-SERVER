@@ -110,7 +110,7 @@ export default function DevisesPage() {
           onChange={(e) => setForm({ ...form, symbole: e.target.value })} className="border rounded px-2 py-1 w-24" />
         <input required type="number" step="any" placeholder="Taux GNF" value={form.tauxGnf}
           onChange={(e) => setForm({ ...form, tauxGnf: e.target.value })} className="border rounded px-2 py-1 w-32" />
-        <button className="bg-brand text-white rounded px-4 py-1.5 hover:bg-brand-dark">Ajouter</button>
+        <button className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-1.5 hover:bg-brand-dark">Ajouter</button>
       </form>
     </div>
   );
@@ -129,7 +129,7 @@ function TauxEditor({ initial, disabled, onSave }: { initial: string; disabled?:
         className="border border-line rounded px-2 py-1 w-32 disabled:bg-surface-2 disabled:text-muted"
       />
       {!disabled && v !== initial && (
-        <button onClick={() => onSave(v)} className="text-xs bg-brand text-white rounded px-2 py-1">OK</button>
+        <button onClick={() => onSave(v)} className="text-xs bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-2 py-1">OK</button>
       )}
     </div>
   );

@@ -56,7 +56,7 @@ export default function LoginPage() {
         />
         <button
           disabled={loading}
-          className="w-full bg-brand text-white rounded py-2 font-medium hover:bg-brand-dark disabled:opacity-50"
+          className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 font-medium hover:bg-brand-dark disabled:opacity-50"
         >
           {loading ? t('Connexion…', 'Signing in…') : t('Se connecter', 'Sign in')}
         </button>

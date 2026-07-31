@@ -6,6 +6,7 @@ import Pagination from '@/components/Pagination';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
 import PieParcMateriel from '@/components/PieParcMateriel';
+import EmptyState from '@/components/EmptyState';
 
 interface Inventaire {
   total: number; disponible: number; affecte: number;
@@ -76,7 +77,7 @@ export default function MaterielPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Équipements & inventaire</h1>
-        {peutCreer && <button onClick={() => { setForm(empty); setError(''); setOpen(true); }} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvel équipement</button>}
+        {peutCreer && <button onClick={() => { setForm(empty); setError(''); setOpen(true); }} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm hover:bg-brand-dark">+ Nouvel équipement</button>}
       </div>
       {inv && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
@@ -116,7 +117,11 @@ export default function MaterielPage() {
                 <td className="p-3">{m.statut}</td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={6}>Aucun équipement</td></tr>}
+            {list.length === 0 && (
+              <tr><td colSpan={6}>
+                <EmptyState title={'Aucun équipement'} hint={'Ajoutez votre premier équipement au parc.'} />
+              </td></tr>
+            )}
           </tbody>
         </table>
         <Pagination page={page} total={total} limit={LIMIT} onChange={setPage} />
@@ -150,7 +155,7 @@ export default function MaterielPage() {
             <option value="NEUF">Neuf</option><option value="BON_ETAT">Bon état</option>
             <option value="A_REPARER">À réparer</option><option value="HORS_SERVICE">Hors service</option>
           </select>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Création…' : 'Créer (QR généré auto)'}
           </button>
         </form>

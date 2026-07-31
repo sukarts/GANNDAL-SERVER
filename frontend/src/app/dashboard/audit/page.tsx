@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
 
 interface Log {
   id: string; action: string; entite: string; entiteId: string | null; createdAt: string;
@@ -26,7 +27,11 @@ export default function AuditPage() {
                 <td className="p-3 font-mono text-xs">{l.entiteId ?? '—'}</td>
               </tr>
             ))}
-            {logs.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={5}>Aucun log</td></tr>}
+            {logs.length === 0 && (
+              <tr><td colSpan={5}>
+                <EmptyState title={'Aucun log'} hint={'Les actions sensibles seront journalisées ici.'} />
+              </td></tr>
+            )}
           </tbody>
         </table>
       </div>

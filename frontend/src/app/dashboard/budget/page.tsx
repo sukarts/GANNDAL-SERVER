@@ -89,7 +89,7 @@ export default function BudgetPage() {
                   {peutEditer ? (
                     <span className="flex items-center gap-1">
                       <input type="number" value={edit[l.rubrique] ?? ''} onChange={(e) => setEdit({ ...edit, [l.rubrique]: e.target.value })} className="border rounded px-2 py-1 w-28 text-xs" />
-                      {edit[l.rubrique] !== String(l.prevu) && <button onClick={() => save(l.rubrique, edit[l.rubrique])} className="text-xs bg-brand text-white rounded px-2 py-1">OK</button>}
+                      {edit[l.rubrique] !== String(l.prevu) && <button onClick={() => save(l.rubrique, edit[l.rubrique])} className="text-xs bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-2 py-1">OK</button>}
                     </span>
                   ) : formatMoney(l.prevu)}
                 </td>
@@ -106,7 +106,7 @@ export default function BudgetPage() {
         <form onSubmit={ajouter} className="flex flex-wrap items-end gap-2 bg-surface p-4 rounded-xl shadow-sm mt-4">
           <input placeholder="Nouvelle rubrique" value={nouvelle.rubrique} onChange={(e) => setNouvelle({ ...nouvelle, rubrique: e.target.value })} className="border rounded px-2 py-1 text-sm" />
           <input type="number" min={0} placeholder="Budget prévu (GNF)" value={nouvelle.montant} onChange={(e) => setNouvelle({ ...nouvelle, montant: e.target.value })} className="border rounded px-2 py-1 text-sm w-40" />
-          <button className="bg-brand text-white rounded px-4 py-1.5 text-sm">Ajouter</button>
+          <button className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-1.5 text-sm">Ajouter</button>
         </form>
       )}
     </div>

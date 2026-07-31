@@ -96,7 +96,7 @@ export default function MaterielDetailPage() {
 
       {peutGerer && (
         <div className="flex gap-2 mb-6">
-          <button onClick={() => { setError(''); setMaintOpen(true); }} className="bg-brand text-white rounded px-3 py-1.5 text-sm">+ Ticket maintenance</button>
+          <button onClick={() => { setError(''); setMaintOpen(true); }} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-3 py-1.5 text-sm">+ Ticket maintenance</button>
           <button onClick={() => { setError(''); setIncOpen(true); }} className="border rounded px-3 py-1.5 text-sm">Déclarer un incident</button>
         </div>
       )}
@@ -145,7 +145,7 @@ export default function MaterielDetailPage() {
             <input type="number" min={0} className={INPUT} placeholder="Coût (GNF)" value={maint.cout} onChange={(e) => setMaint({ ...maint, cout: e.target.value })} />
           </div>
           <label className="text-sm block">Remise en service (si résolu)<input type="date" className={INPUT} value={maint.dateRemiseEnService} onChange={(e) => setMaint({ ...maint, dateRemiseEnService: e.target.value })} /></label>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Créer le ticket'}</button>
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Créer le ticket'}</button>
         </form>
       </Modal>
 
@@ -157,7 +157,7 @@ export default function MaterielDetailPage() {
             <option value="VOL">Vol</option><option value="DEGRADATION">Dégradation</option>
           </select>
           <textarea required className={INPUT} rows={3} placeholder="Description" value={inc.description} onChange={(e) => setInc({ ...inc, description: e.target.value })} />
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Déclarer'}</button>
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 disabled:opacity-50">{saving ? 'Enregistrement…' : 'Déclarer'}</button>
         </form>
       </Modal>
     </div>

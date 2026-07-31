@@ -60,7 +60,7 @@ export default function InvitationPage() {
             {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
             <input type="password" className="w-full border rounded px-3 py-2" placeholder="Mot de passe (min 6)" value={form.mdp} onChange={(e) => setForm({ ...form, mdp: e.target.value })} />
             <input type="password" className="w-full border rounded px-3 py-2" placeholder="Confirmer" value={form.confirme} onChange={(e) => setForm({ ...form, confirme: e.target.value })} />
-            <button disabled={saving} className="w-full bg-brand text-white rounded py-2 font-medium hover:bg-brand-dark disabled:opacity-50">
+            <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 font-medium hover:bg-brand-dark disabled:opacity-50">
               {saving ? 'Activation…' : 'Activer mon compte'}
             </button>
           </form>

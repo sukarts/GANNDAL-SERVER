@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
+import EmptyState from '@/components/EmptyState';
 
 interface Jri {
   id: string; nom: string; prenom: string; email: string; actif: boolean;
@@ -51,7 +52,7 @@ export default function JriPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">JRI / Pigistes</h1>
-        {isAdmin && <button onClick={() => { setForm(empty); setError(''); setOpen(true); }} className="bg-brand text-white rounded px-4 py-2 text-sm hover:bg-brand-dark">+ Nouveau JRI</button>}
+        {isAdmin && <button onClick={() => { setForm(empty); setError(''); setOpen(true); }} className="bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 px-4 py-2 text-sm hover:bg-brand-dark">+ Nouveau JRI</button>}
       </div>
       <div className="bg-surface rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
@@ -75,7 +76,11 @@ export default function JriPage() {
                 </td>
               </tr>
             ))}
-            {list.length === 0 && <tr><td className="p-6 text-center text-muted" colSpan={6}>Aucun JRI</td></tr>}
+            {list.length === 0 && (
+              <tr><td colSpan={6}>
+                <EmptyState title={'Aucun JRI'} hint={'Invitez un JRI pour le voir apparaître ici.'} />
+              </td></tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -99,7 +104,7 @@ export default function JriPage() {
               <input type="number" min={0} className={INPUT} value={form.tarifParMinute} onChange={(e) => setForm({ ...form, tarifParMinute: e.target.value })} />
             </label>
           </div>
-          <button disabled={saving} className="w-full bg-brand text-white rounded py-2 hover:bg-brand-dark disabled:opacity-50">
+          <button disabled={saving} className="w-full bg-brand text-white rounded-lg font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1 py-2 hover:bg-brand-dark disabled:opacity-50">
             {saving ? 'Création…' : 'Créer le JRI'}
           </button>
         </form>
