@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, apiUpload, getUser } from '@/lib/api';
 import { useLang } from '@/lib/i18n';
+import { ArrowLeft } from 'lucide-react';
 
 interface Element { id: string; type: string; nomFichier: string; version: number; url: string | null; tailleOctets: string; createdAt: string }
 interface Validation { id: string; action: string; commentaire: string | null; createdAt: string; validateur: { nom: string; prenom: string } }
@@ -80,7 +81,7 @@ export default function SujetDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/sujets" className="text-sm text-muted hover:underline">← {t('Sujets', 'Assignments')}</Link>
+      <Link href="/dashboard/sujets" className="inline-flex items-center gap-1 text-sm text-muted hover:text-content"><ArrowLeft size={14} />{t('Sujets', 'Assignments')}</Link>
       <div className="flex items-center justify-between mt-2 mb-1">
         <h1 className="text-2xl font-bold">{s.titre}</h1>
         <span className={`px-3 py-1 rounded text-sm ${STATUT_COLOR[s.statut] ?? ''}`}>{s.statut}</span>

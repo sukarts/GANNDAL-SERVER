@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
 import Modal from '@/components/Modal';
+import { ArrowLeft } from 'lucide-react';
 
 interface Dotation {
   id: string; dateRemise: string; statut: string; etatRemise: string;
@@ -70,7 +71,7 @@ export default function MaterielDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/materiel" className="text-sm text-muted hover:underline">← Équipements</Link>
+      <Link href="/dashboard/materiel" className="inline-flex items-center gap-1 text-sm text-muted hover:text-content"><ArrowLeft size={14} />Équipements</Link>
       <div className="flex items-center justify-between mt-2 mb-1">
         <h1 className="text-2xl font-bold">{m.reference} — {[m.marque, m.modele].filter(Boolean).join(' ') || m.categorie.nom}</h1>
         <span className="px-3 py-1 rounded text-sm bg-surface-2 border border-line">{m.statut}</span>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
 import EmptyState from '@/components/EmptyState';
+import { ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface User {
   id: string; email: string; nom: string; prenom: string; telephone: string | null;
@@ -122,7 +123,7 @@ export default function UtilisateursPage() {
                 <td className="p-3">{u.telephone ?? '—'}</td>
                 <td className="p-3"><span className={`px-2 py-1 rounded text-xs ${ROLE_BADGE[u.role] ?? ''}`}>{u.role}</span></td>
                 <td className="p-3">
-                  <button onClick={() => toggle(u)} disabled={u.id === me?.id} className="text-xs underline disabled:opacity-40">{u.actif ? '✅ actif' : '❌ inactif'}</button>
+                  <button onClick={() => toggle(u)} disabled={u.id === me?.id} className={`inline-flex items-center gap-1 text-xs disabled:opacity-40 ${u.actif ? 'text-success' : 'text-muted'}`}>{u.actif ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}{u.actif ? 'actif' : 'inactif'}</button>
                 </td>
                 <td className="p-3 text-right whitespace-nowrap">
                   <button onClick={() => { setError(''); setEdit(u); }} className="text-xs underline mr-3">Éditer</button>

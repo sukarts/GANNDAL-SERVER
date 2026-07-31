@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { formatMoney } from '@/lib/money';
+import { ArrowLeft } from 'lucide-react';
 
 interface JriProfile { tarifParSujet: string; tarifParMinute: string; specialite: string | null; iban: string | null; banque: string | null; pays: string | null; modePaiementPrefere: string | null }
 interface Sujet { id: string; reference: string; titre: string; statut: string; createdAt: string }
@@ -68,7 +69,7 @@ export default function JriDetailPage() {
 
   return (
     <div>
-      <Link href="/dashboard/jri" className="text-sm text-muted hover:underline">← JRI</Link>
+      <Link href="/dashboard/jri" className="inline-flex items-center gap-1 text-sm text-muted hover:text-content"><ArrowLeft size={14} />JRI</Link>
       <div className="flex items-center justify-between mt-2 mb-4">
         <h1 className="text-2xl font-bold">{u.prenom} {u.nom}</h1>
         <span className={`px-3 py-1 rounded text-sm ${u.actif ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{u.actif ? 'Actif' : 'Inactif'}</span>

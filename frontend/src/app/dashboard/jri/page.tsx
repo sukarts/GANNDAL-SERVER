@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import Modal from '@/components/Modal';
 import EmptyState from '@/components/EmptyState';
+import { ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface Jri {
   id: string; nom: string; prenom: string; email: string; actif: boolean;
@@ -71,8 +72,8 @@ export default function JriPage() {
                 <td className="p-3">{j.jriProfile?.tarifParMinute ?? '—'}</td>
                 <td className="p-3">
                   {isAdmin
-                    ? <button onClick={() => toggle(j.id)} className="text-xs underline">{j.actif ? '✅ actif' : '❌ inactif'}</button>
-                    : (j.actif ? '✅' : '❌')}
+                    ? <button onClick={() => toggle(j.id)} className={`inline-flex items-center gap-1 text-xs ${j.actif ? 'text-success' : 'text-muted'}`}>{j.actif ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}{j.actif ? 'actif' : 'inactif'}</button>
+                    : (j.actif ? <ToggleRight size={16} className="text-success" /> : <ToggleLeft size={16} className="text-muted" />)}
                 </td>
               </tr>
             ))}

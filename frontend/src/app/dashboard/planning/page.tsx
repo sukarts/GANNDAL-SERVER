@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { api, getUser } from '@/lib/api';
 import { useLang } from '@/lib/i18n';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Sujet {
   id: string; reference: string; titre: string; statut: string; priorite: string;
@@ -118,9 +119,9 @@ export default function PlanningPage() {
       {vue === 'calendrier' && (
         <div>
           <div className="flex items-center gap-3 mb-3">
-            <button onClick={() => setCurseur(new Date(annee, mois - 1, 1))} className="border rounded px-2 py-1 text-sm">←</button>
+            <button onClick={() => setCurseur(new Date(annee, mois - 1, 1))} className="border border-line rounded px-2 py-1 text-sm" aria-label="Mois précédent"><ChevronLeft size={16} /></button>
             <span className="font-medium">{MOIS_FR[mois]} {annee}</span>
-            <button onClick={() => setCurseur(new Date(annee, mois + 1, 1))} className="border rounded px-2 py-1 text-sm">→</button>
+            <button onClick={() => setCurseur(new Date(annee, mois + 1, 1))} className="border border-line rounded px-2 py-1 text-sm" aria-label="Mois suivant"><ChevronRight size={16} /></button>
           </div>
           <div className="grid grid-cols-7 gap-1 text-xs">
             {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((j) => (

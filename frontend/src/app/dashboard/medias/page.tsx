@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { apiPaged } from '@/lib/api';
 import { useLang } from '@/lib/i18n';
 import Pagination from '@/components/Pagination';
+import { Film, AudioLines, Image, FileText, type LucideIcon } from 'lucide-react';
 
 interface Media {
   id: string; type: string; nomFichier: string; url: string | null; version: number;
@@ -13,7 +14,7 @@ interface Media {
 
 const LIMIT = 24;
 const TYPES = ['', 'VIDEO', 'AUDIO', 'PHOTO', 'DOCUMENT'];
-const ICONE: Record<string, string> = { VIDEO: '🎬', AUDIO: '🔊', PHOTO: '🖼️', DOCUMENT: '📄' };
+const ICONE: Record<string, LucideIcon> = { VIDEO: Film, AUDIO: AudioLines, PHOTO: Image, DOCUMENT: FileText };
 
 function taille(o: string): string {
   const n = Number(o);
@@ -65,7 +66,7 @@ export default function MediasPage() {
                 ? <img src={m.url} alt={m.nomFichier} className="w-full h-full object-cover" />
                 : m.type === 'VIDEO' && m.url
                   ? <video src={m.url} className="w-full h-full object-cover" preload="metadata" />
-                  : <span className="text-4xl">{ICONE[m.type] ?? '📄'}</span>}
+                  : (() => { const Icone = ICONE[m.type] ?? FileText; return <Icone size={32} strokeWidth={1.5} className="text-muted" />; })()}
             </div>
             <div className="p-2 text-xs">
               <div className="font-medium truncate" title={m.nomFichier}>{m.nomFichier}</div>
