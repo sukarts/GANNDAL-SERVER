@@ -42,7 +42,7 @@ export default function SortableTh({
       <button
         type="button"
         onClick={() => onSort({ key: sortKey, dir: actif && dir === 'asc' ? 'desc' : 'asc' })}
-        className={`inline-flex items-center gap-1 hover:text-content transition-colors ${align === 'right' ? 'flex-row-reverse' : ''}`}
+        className="inline-flex items-center gap-1 hover:text-content transition-colors whitespace-nowrap"
       >
         {label}
         {actif ? (dir === 'asc' ? <ChevronUp size={13} /> : <ChevronDown size={13} />) : <ChevronsUpDown size={13} className="opacity-40" />}
