@@ -2,9 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Tokens couleur (light par défaut) ===== */
 :root {
   --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
   --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  --brand: #1a7f37;
+  --brand-dark: #14622b;
+  --brand-light: #e8f3ec;
+  --ring: #1a7f37;
+
+  --success: #1a7f37;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --info: #1d4ed8;
+}
+
+/* Dark : via prefers-color-scheme (défaut) ET override explicite [data-theme='dark'] */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0f1115;
+    --surface: #171a21;
+    --surface-2: #1e222b;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --border: #2a2f3a;
+    --brand: #2f9e4f;
+    --brand-dark: #1a7f37;
+    --brand-light: rgba(47, 158, 79, 0.15);
+    --ring: #2f9e4f;
+    --success: #2f9e4f;
+    --warning: #f59e0b;
+    --danger: #f87171;
+    --info: #60a5fa;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #0f1115;
+  --surface: #171a21;
+  --surface-2: #1e222b;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: #2a2f3a;
+  --brand: #2f9e4f;
+  --brand-dark: #1a7f37;
+  --brand-light: rgba(47, 158, 79, 0.15);
+  --ring: #2f9e4f;
+  --success: #2f9e4f;
+  --warning: #f59e0b;
+  --danger: #f87171;
+  --info: #60a5fa;
 }
 
 body {
@@ -17,14 +68,15 @@ body {
 /* Titres plus nets */
 h1, h2, h3 { letter-spacing: -0.01em; }
 
-/* Champs de formulaire cohérents + focus vert de marque */
+/* Champs de formulaire cohérents + focus vert de marque (thémé) */
 input, select, textarea {
-  background: #fff;
+  background: var(--surface);
+  color: var(--text);
   transition: border-color .15s, box-shadow .15s;
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #1a7f37;
+  border-color: var(--ring);
   box-shadow: 0 0 0 3px rgb(26 127 55 / 0.12);
 }
 
@@ -33,9 +85,13 @@ button { transition: background-color .15s, opacity .15s, transform .05s; }
 button:active:not(:disabled) { transform: translateY(0.5px); }
 
 /* Lignes de tableau au survol */
-tbody tr:hover { background: #fafafa; }
+tbody tr:hover { background: var(--surface-2); }
 
 /* Scrollbar discrète */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
-::-webkit-scrollbar-thumb:hover { background: #9ca3af; background-clip: content-box; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); background-clip: content-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

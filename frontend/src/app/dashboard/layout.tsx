@@ -2,10 +2,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Menu } from 'lucide-react';
 import { getUser, clearSession, type AuthUser } from '@/lib/api';
 import CurrencySelector from '@/components/CurrencySelector';
 import NotificationBell from '@/components/NotificationBell';
 import LangSelector from '@/components/LangSelector';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useLang } from '@/lib/i18n';
 
 const NAV: { href: string; label: string; en: string; roles: AuthUser['role'][] }[] = [
@@ -89,11 +91,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-        <header className="h-14 bg-white border-b flex items-center px-4 md:px-6 gap-4">
-          <button className="md:hidden p-2 -ml-2" onClick={() => setMenuOpen(true)} aria-label="Menu">☰</button>
+        <header className="h-14 bg-surface border-b border-line flex items-center px-4 md:px-6 gap-3">
+          <button className="md:hidden p-2 -ml-2 text-muted hover:text-content" onClick={() => setMenuOpen(true)} aria-label="Menu"><Menu size={20} /></button>
           <div className="flex-1" />
           <LangSelector />
           <CurrencySelector />
+          <ThemeToggle />
           <NotificationBell />
         </header>
         <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
