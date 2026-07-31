@@ -82,7 +82,7 @@ export default function JriPage() {
 
       <Modal open={open} title="Nouveau JRI" onClose={() => setOpen(false)}>
         <form onSubmit={submit} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <div className="flex gap-3">
             <input required className={INPUT} placeholder="Prénom" value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })} />
             <input required className={INPUT} placeholder="Nom" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} />

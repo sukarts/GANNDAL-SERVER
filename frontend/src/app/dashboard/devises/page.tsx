@@ -63,7 +63,7 @@ export default function DevisesPage() {
       <p className="text-sm text-muted mb-6">
         Devise de base : <b>GNF</b>. Taux = nombre de GNF pour 1 unité de la devise. Saisie manuelle.
       </p>
-      {msg && <p className="text-sm mb-4 bg-amber-50 text-amber-800 p-2 rounded">{msg}</p>}
+      {msg && <p className="text-sm mb-4 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 p-2 rounded">{msg}</p>}
 
       <div className="bg-surface rounded-xl shadow-sm overflow-x-auto mb-6">
         <table className="w-full text-sm">

@@ -121,7 +121,7 @@ export default function SujetsPage() {
 
       <Modal open={open} title="Nouveau sujet" onClose={() => setOpen(false)}>
         <form onSubmit={submit} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <input required className={INPUT} placeholder="Titre" value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} />
           <textarea className={INPUT} placeholder="Description" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <input className={INPUT} placeholder="Rubrique (Politique, Sport, Éco…)" value={form.rubrique} onChange={(e) => setForm({ ...form, rubrique: e.target.value })} />

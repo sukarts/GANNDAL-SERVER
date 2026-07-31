@@ -95,7 +95,7 @@ export default function UtilisateursPage() {
       {error && !open && !edit && <p className="text-red-600 mb-3">{error}</p>}
 
       {lienInvit && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4 text-sm">
+        <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 mb-4 text-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium text-green-800">Invitation créée — lien d’activation (valable 7 j)</span>
             <button onClick={() => setLienInvit('')} className="text-green-700 text-xs underline">Fermer</button>
@@ -136,7 +136,7 @@ export default function UtilisateursPage() {
 
       <Modal open={open} title="Nouvel utilisateur" onClose={() => setOpen(false)}>
         <form onSubmit={create} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <div className="flex gap-3">
             <input required className={INPUT} placeholder="Prénom" value={form.prenom} onChange={(e) => setForm({ ...form, prenom: e.target.value })} />
             <input required className={INPUT} placeholder="Nom" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} />
@@ -154,7 +154,7 @@ export default function UtilisateursPage() {
 
       <Modal open={inviteOpen} title="Inviter par email" onClose={() => setInviteOpen(false)}>
         <form onSubmit={sendInvite} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <div className="flex gap-3">
             <input required className={INPUT} placeholder="Prénom" value={invite.prenom} onChange={(e) => setInvite({ ...invite, prenom: e.target.value })} />
             <input required className={INPUT} placeholder="Nom" value={invite.nom} onChange={(e) => setInvite({ ...invite, nom: e.target.value })} />
@@ -172,7 +172,7 @@ export default function UtilisateursPage() {
       <Modal open={!!edit} title="Éditer l'utilisateur" onClose={() => setEdit(null)}>
         {edit && (
           <form onSubmit={saveEdit} className="space-y-3">
-            {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+            {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
             <div className="flex gap-3">
               <input required className={INPUT} placeholder="Prénom" value={edit.prenom} onChange={(e) => setEdit({ ...edit, prenom: e.target.value })} />
               <input required className={INPUT} placeholder="Nom" value={edit.nom} onChange={(e) => setEdit({ ...edit, nom: e.target.value })} />

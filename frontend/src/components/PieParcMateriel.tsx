@@ -1,5 +1,6 @@
 'use client';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { useThemeColors } from './BarChartMois';
 
 interface Inventaire {
   disponible: number; affecte: number; maintenance: number; perdu: number; vole: number;
@@ -15,6 +16,7 @@ const SEGMENTS = [
 ] as const;
 
 export default function PieParcMateriel({ inv }: { inv: Inventaire }) {
+  const c = useThemeColors();
   const data = [
     { label: 'Disponible', value: inv.disponible, couleur: SEGMENTS[0].couleur },
     { label: 'Affecté', value: inv.affecte, couleur: SEGMENTS[1].couleur },
@@ -34,15 +36,15 @@ export default function PieParcMateriel({ inv }: { inv: Inventaire }) {
           innerRadius={52}
           outerRadius={84}
           paddingAngle={2}
-          stroke="#fff"
+          stroke={c.surface}
           strokeWidth={2}
           label={(e: { label: string; value: number }) => `${e.label} : ${e.value}`}
           labelLine={false}
         >
           {data.map((d) => <Cell key={d.label} fill={d.couleur} />)}
         </Pie>
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }} />
-        <Legend verticalAlign="bottom" height={24} wrapperStyle={{ fontSize: 12 }} />
+        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${c.border}`, background: c.surface, color: c.text }} />
+        <Legend verticalAlign="bottom" height={24} wrapperStyle={{ fontSize: 12, color: c.tick }} />
       </PieChart>
     </ResponsiveContainer>
   );

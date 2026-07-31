@@ -124,7 +124,7 @@ export default function MaterielPage() {
 
       <Modal open={open} title="Nouvel équipement" onClose={() => setOpen(false)}>
         <form onSubmit={submit} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <div className="flex gap-3">
             <input required className={INPUT} placeholder="Référence interne" value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} />
             <input required className={INPUT} placeholder="N° inventaire" value={form.numInventaire} onChange={(e) => setForm({ ...form, numInventaire: e.target.value })} />

@@ -49,7 +49,7 @@ export default function InvitationPage() {
         </div>
 
         {loading && <p className="text-sm text-muted text-center">Vérification…</p>}
-        {!loading && error && !invite && <p className="text-sm text-red-600 bg-red-50 p-3 rounded text-center">{error}</p>}
+        {!loading && error && !invite && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-3 rounded text-center">{error}</p>}
 
         {invite && (
           <form onSubmit={submit} className="space-y-3">
@@ -57,7 +57,7 @@ export default function InvitationPage() {
               Bonjour <b>{invite.prenom} {invite.nom}</b> ({invite.email}) — rôle <b>{invite.role}</b>.
               Choisissez votre mot de passe.
             </p>
-            {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+            {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
             <input type="password" className="w-full border rounded px-3 py-2" placeholder="Mot de passe (min 6)" value={form.mdp} onChange={(e) => setForm({ ...form, mdp: e.target.value })} />
             <input type="password" className="w-full border rounded px-3 py-2" placeholder="Confirmer" value={form.confirme} onChange={(e) => setForm({ ...form, confirme: e.target.value })} />
             <button disabled={saving} className="w-full bg-brand text-white rounded py-2 font-medium hover:bg-brand-dark disabled:opacity-50">

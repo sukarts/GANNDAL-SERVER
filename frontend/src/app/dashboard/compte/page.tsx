@@ -70,7 +70,7 @@ export default function ComptePage() {
       <div className="bg-surface rounded-xl shadow-sm p-5">
         <h2 className="font-semibold mb-4">{t('Changer le mot de passe', 'Change password')}</h2>
         {msg && <p className="text-sm text-green-700 bg-green-50 p-2 rounded mb-3">{msg}</p>}
-        {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded mb-3">{error}</p>}
+        {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded mb-3">{error}</p>}
         <form onSubmit={submit} className="space-y-3">
           <input required type="password" className={INPUT} placeholder={t('Mot de passe actuel', 'Current password')} value={form.ancien} onChange={(e) => setForm({ ...form, ancien: e.target.value })} />
           <input required type="password" className={INPUT} placeholder={t('Nouveau mot de passe', 'New password')} value={form.nouveau} onChange={(e) => setForm({ ...form, nouveau: e.target.value })} />

@@ -166,7 +166,7 @@ export default function PaiementsPage() {
 
       <Modal open={open} title="Calculer une pige" onClose={() => setOpen(false)}>
         <form onSubmit={submit} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <select required className={INPUT} value={form.jriId} onChange={(e) => setForm({ ...form, jriId: e.target.value })}>
             <option value="">— JRI —</option>
             {jris.map((j) => <option key={j.id} value={j.id}>{j.prenom} {j.nom}</option>)}

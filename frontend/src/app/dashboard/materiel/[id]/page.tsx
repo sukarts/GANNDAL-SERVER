@@ -137,7 +137,7 @@ export default function MaterielDetailPage() {
 
       <Modal open={maintOpen} title="Ticket de maintenance" onClose={() => setMaintOpen(false)}>
         <form onSubmit={submitMaint} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <label className="text-sm block">Date de panne<input required type="date" className={INPUT} value={maint.datePanne} onChange={(e) => setMaint({ ...maint, datePanne: e.target.value })} /></label>
           <textarea required className={INPUT} rows={2} placeholder="Description" value={maint.description} onChange={(e) => setMaint({ ...maint, description: e.target.value })} />
           <div className="flex gap-3">
@@ -151,7 +151,7 @@ export default function MaterielDetailPage() {
 
       <Modal open={incOpen} title="Déclarer un incident" onClose={() => setIncOpen(false)}>
         <form onSubmit={submitInc} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <select className={INPUT} value={inc.type} onChange={(e) => setInc({ ...inc, type: e.target.value })}>
             <option value="PANNE">Panne</option><option value="PERTE">Perte</option>
             <option value="VOL">Vol</option><option value="DEGRADATION">Dégradation</option>

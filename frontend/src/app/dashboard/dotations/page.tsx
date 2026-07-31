@@ -136,7 +136,7 @@ export default function DotationsPage() {
 
       <Modal open={open} title="Nouvelle dotation" onClose={() => setOpen(false)}>
         <form onSubmit={submit} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <select required className={INPUT} value={form.materielId} onChange={(e) => setForm({ ...form, materielId: e.target.value })}>
             <option value="">— Matériel disponible —</option>
             {materiels.map((m) => <option key={m.id} value={m.id}>{m.reference}</option>)}
@@ -170,7 +170,7 @@ export default function DotationsPage() {
 
       <Modal open={!!restit} title={`Restitution — ${restit?.materiel.reference ?? ''}`} onClose={() => setRestit(null)}>
         <form onSubmit={restituer} className="space-y-3">
-          {error && <p className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-sm text-danger bg-red-50 dark:bg-red-950/40 p-2 rounded">{error}</p>}
           <label className="text-sm block">État au retour
             <select className={INPUT} value={rForm.etatRetour} onChange={(e) => setRForm({ ...rForm, etatRetour: e.target.value })}>
               <option value="NEUF">Neuf</option><option value="BON_ETAT">Bon état</option>
