@@ -128,6 +128,39 @@ docker compose -f deploy/docker-compose.prod.yml restart nginx
 > Ne pas utiliser `up -d --build` ni `docker compose build` ici : ils passent par BuildKit et cassent sur le DNS.
 > `deploy-backend` / `deploy-frontend` = noms d'image attendus par compose (projet `deploy`).
 
+## ⚠️ Coupure 80/443 après déploiement (nftables + Docker) — RÉSOLU
+
+**Symptôme** : après un `docker compose up` / `restart` / `systemctl restart docker` / reboot, le site
+renvoie `ERR_CONNECTION_TIMED_OUT` de l'extérieur, alors que le VPS lui-même sert (`curl localhost` = 200)
+et que le SSH (port 22) marche. Le SYN externe **arrive** (vérifié au tcpdump) mais aucun SYN-ACK ne repart.
+
+**Cause** : iptables en backend **nf_tables** (`iptables --version` → `nf_tables`) + politique
+`FORWARD DROP`. À chaque événement Docker, les règles d'ACCEPT du forwarding se désynchronisent → le
+trafic externe forwardé vers le conteneur nginx est droppé (le trafic local passe par `OUTPUT`, d'où le 200 en loopback).
+
+**Correctif appliqué (permanent)** — règle d'acceptation dans la chaîne `DOCKER-USER` (préservée par Docker),
+réappliquée à chaque boot via un service systemd :
+```bash
+# immédiat
+iptables -I DOCKER-USER -j ACCEPT
+# persistance au reboot
+cat > /etc/systemd/system/docker-forward-fix.service <<'EOF'
+[Unit]
+Description=Reouvre le forwarding Docker (DOCKER-USER) apres docker
+After=docker.service
+Requires=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/iptables -I DOCKER-USER -j ACCEPT
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl daemon-reload && systemctl enable docker-forward-fix.service
+```
+> Si la coupure réapparaît un jour : `iptables -P FORWARD ACCEPT` débloque immédiatement, puis vérifier
+> que le service `docker-forward-fix` est bien `enabled` (`systemctl status docker-forward-fix`).
+
 ## Mises à jour
 
 Voir le bloc ci-dessus (build réseau hôte). En résumé : `git pull` → `docker build --network=host` (backend + frontend si changé) → `up -d` → `restart nginx`. Les migrations s'appliquent seules au démarrage du backend (`migrate deploy`).
