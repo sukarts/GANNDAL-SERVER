@@ -90,9 +90,11 @@ async function authedFetch(url: string, init: RequestInit = {}): Promise<Respons
     };
   };
   let res = await fetch(url, build());
-  if (res.status === 401 && getRefreshToken()) {
-    const ok = await refreshAccess();
-    if (ok) {
+  // 401 sur une route protégée : tente un refresh silencieux, sinon session morte → login.
+  // Les routes /auth/* (login, refresh) gèrent leur propre 401 et ne redirigent pas.
+  if (res.status === 401 && !url.includes('/auth/')) {
+    const refreshed = getRefreshToken() ? await refreshAccess() : false;
+    if (refreshed) {
       res = await fetch(url, build());
     }
     if (res.status === 401) onSessionExpired();
